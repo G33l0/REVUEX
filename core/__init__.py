@@ -155,9 +155,34 @@ from .utils import (
 )
 
 # Will be populated as we create more core modules
-# from .logger import RevuexLogger
 # from .intelligence_hub import IntelligenceHub
-# from .report_generator import ReportGenerator
+
+from .logger import (
+    RevuexLogger,
+    LogEntry,
+    RequestLog,
+    ResponseLog,
+    ScanActivityLog,
+    ColoredFormatter,
+    JSONFormatter,
+    get_logger,
+    configure_logging,
+    SUCCESS,
+    FINDING,
+    REQUEST,
+    RESPONSE,
+)
+
+from .report_generator import (
+    ReportGenerator,
+    ReportMetadata,
+    FindingReport,
+    ScanStatistics,
+    create_report,
+    SEVERITY_COLORS,
+    OWASP_TOP_10,
+    VULN_CLASSIFICATION,
+)
 
 __version__ = REVUEX_VERSION
 __author__ = "REVUEX Team"
@@ -269,4 +294,29 @@ __all__ = [
     "retry",
     "memoize",
     "timed",
+    
+    # === logger.py ===
+    "RevuexLogger",
+    "LogEntry",
+    "RequestLog",
+    "ResponseLog",
+    "ScanActivityLog",
+    "ColoredFormatter",
+    "JSONFormatter",
+    "get_logger",
+    "configure_logging",
+    "SUCCESS",
+    "FINDING",
+    "REQUEST",
+    "RESPONSE",
+    
+    # === report_generator.py ===
+    "ReportGenerator",
+    "ReportMetadata",
+    "FindingReport",
+    "ScanStatistics",
+    "create_report",
+    "SEVERITY_COLORS",
+    "OWASP_TOP_10",
+    "VULN_CLASSIFICATION",
 ]
