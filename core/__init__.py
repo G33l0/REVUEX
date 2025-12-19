@@ -154,8 +154,24 @@ from .utils import (
     timed,
 )
 
-# Will be populated as we create more core modules
-# from .intelligence_hub import IntelligenceHub
+# Intelligence Hub for cross-tool data sharing
+from .intelligence_hub import (
+    IntelligenceHub,
+    Endpoint,
+    Parameter,
+    Technology,
+    Credential,
+    IntelType,
+    IntelQuery,
+    get_hub,
+    share_endpoint,
+    share_parameter,
+    get_known_endpoints,
+    get_attack_surface,
+    INTEL_CATEGORIES,
+    PARAM_TYPES,
+    TECH_SIGNATURES,
+)
 
 from .logger import (
     RevuexLogger,
@@ -319,4 +335,21 @@ __all__ = [
     "SEVERITY_COLORS",
     "OWASP_TOP_10",
     "VULN_CLASSIFICATION",
+    
+    # === intelligence_hub.py ===
+    "IntelligenceHub",
+    "Endpoint",
+    "Parameter",
+    "Technology",
+    "Credential",
+    "IntelType",
+    "IntelQuery",
+    "get_hub",
+    "share_endpoint",
+    "share_parameter",
+    "get_known_endpoints",
+    "get_attack_surface",
+    "INTEL_CATEGORIES",
+    "PARAM_TYPES",
+    "TECH_SIGNATURES",
 ]
