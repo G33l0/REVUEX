@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2025 G33l0
+Copyright (c) 2025 REVUEX Team
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -19,3 +19,38 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+================================================================================
+                              ADDITIONAL NOTICE
+================================================================================
+
+This software is designed for AUTHORIZED SECURITY TESTING ONLY.
+
+By using this software, you acknowledge that:
+
+1. You will only use this software on systems you own or have explicit written
+   authorization to test.
+
+2. You will comply with all applicable laws and regulations in your
+   jurisdiction regarding computer security testing.
+
+3. You will follow responsible disclosure practices when reporting
+   vulnerabilities discovered using this software.
+
+4. You will not use this software for any malicious, illegal, or unauthorized
+   purpose.
+
+5. The authors and contributors of this software are not responsible for any
+   misuse or damage caused by this software.
+
+UNAUTHORIZED ACCESS TO COMPUTER SYSTEMS IS A CRIMINAL OFFENSE IN MOST
+JURISDICTIONS. THIS INCLUDES BUT IS NOT LIMITED TO VIOLATIONS OF:
+
+- Computer Fraud and Abuse Act (CFAA) - United States
+- Computer Misuse Act - United Kingdom  
+- Criminal Code Section 342.1 - Canada
+- Cybercrime Act - Australia
+- IT Act 2000 - India
+- Similar legislation in other countries
+
+================================================================================
