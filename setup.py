@@ -6,15 +6,15 @@ REVUEX - Setup Configuration
 Professional bug bounty automation framework.
 
 Installation:
-    pip install -e .                    # Development install
+    pip install -e .                    # Development install (editable)
     pip install .                       # Standard install
-    pip install .[dev]                  # With dev dependencies
-    pip install .[all]                  # All optional dependencies
+    pip install .[dev]                  # With development dependencies
+    pip install .[full]                 # All optional dependencies
 
-Usage after install:
+After Installation:
     revuex --help                       # Main CLI
-    revuex-ssrf -t https://example.com  # Individual scanner
-    python -m revuex.tools.ssrf         # Module execution
+    revuex scan -t https://example.com  # Full vulnerability scan
+    python revuex_suite.py              # Direct execution
 
 Author: REVUEX Team
 License: MIT
@@ -24,7 +24,6 @@ import os
 import sys
 from pathlib import Path
 
-# Handle different setuptools versions
 try:
     from setuptools import setup, find_packages
 except ImportError:
@@ -58,42 +57,24 @@ if README_PATH.exists():
 # =============================================================================
 
 CLASSIFIERS = [
-    # Development Status
     "Development Status :: 4 - Beta",
-    
-    # Intended Audience
     "Intended Audience :: Developers",
     "Intended Audience :: Information Technology",
-    "Intended Audience :: Science/Research",
-    
-    # Topic
     "Topic :: Security",
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: Software Development :: Testing",
-    "Topic :: Software Development :: Quality Assurance",
-    
-    # License
     "License :: OSI Approved :: MIT License",
-    
-    # Operating System
     "Operating System :: OS Independent",
     "Operating System :: POSIX :: Linux",
     "Operating System :: Microsoft :: Windows",
     "Operating System :: MacOS",
-    
-    # Python Versions
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
-    
-    # Environment
     "Environment :: Console",
-    "Environment :: Web Environment",
-    
-    # Natural Language
     "Natural Language :: English",
 ]
 
@@ -147,29 +128,20 @@ DEV_REQUIRES = [
     "pytest-asyncio>=0.20.0",
     "pytest-mock>=3.10.0",
     "responses>=0.22.0",
-    "httpretty>=1.1.0",
     
     # Code quality
     "black>=23.0.0",
     "isort>=5.12.0",
     "flake8>=6.0.0",
     "mypy>=1.0.0",
-    "pylint>=2.16.0",
     
     # Documentation
     "sphinx>=6.0.0",
     "sphinx-rtd-theme>=1.2.0",
-    "myst-parser>=1.0.0",
-    
-    # Build tools
-    "build>=0.10.0",
-    "twine>=4.0.0",
-    "wheel>=0.40.0",
 ]
 
 # Optional dependencies for advanced features
 EXTRAS_REQUIRE = {
-    # Development
     "dev": DEV_REQUIRES,
     
     # Async support
@@ -183,21 +155,17 @@ EXTRAS_REQUIRE = {
     "crypto": [
         "pyjwt>=2.6.0",
         "cryptography>=40.0.0",
-        "pycryptodome>=3.17.0",
     ],
     
     # Enhanced parsing
     "parsing": [
         "xmltodict>=0.13.0",
-        "cssselect>=1.2.0",
-        "html5lib>=1.1",
         "chardet>=5.1.0",
     ],
     
     # Reporting
     "reporting": [
         "markdown>=3.4.0",
-        "weasyprint>=58.0",  # PDF generation
         "pygments>=2.14.0",
     ],
     
@@ -206,15 +174,8 @@ EXTRAS_REQUIRE = {
         "androguard>=3.4.0",
     ],
     
-    # Data analysis
-    "analysis": [
-        "pandas>=1.5.0",
-        "numpy>=1.24.0",
-    ],
-    
-    # Full installation
-    "all": [
-        # Include all optional deps
+    # Full installation with all optional deps
+    "full": [
         "aiohttp>=3.8.0",
         "aiofiles>=23.0.0",
         "pyjwt>=2.6.0",
@@ -227,37 +188,35 @@ EXTRAS_REQUIRE = {
 
 
 # =============================================================================
-# ENTRY POINTS (CLI COMMANDS)
+# ENTRY POINTS
 # =============================================================================
 
 ENTRY_POINTS = {
     "console_scripts": [
-        # Main CLI
-        "revuex=revuex.cli:main",
+        # Main entry point
+        "revuex=revuex_suite:main",
         
-        # Individual scanner CLIs
-        "revuex-ssrf=revuex.tools.ssrf:main",
-        "revuex-sqli=revuex.tools.sqli:main",
-        "revuex-xss=revuex.tools.xss:main",
-        "revuex-idor=revuex.tools.idor:main",
-        "revuex-cors=revuex.tools.cors:main",
-        "revuex-csrf=revuex.tools.csrf:main",
-        "revuex-xxe=revuex.tools.xxe:main",
-        "revuex-ssti=revuex.tools.ssti:main",
-        "revuex-jwt=revuex.tools.jwt:main",
-        "revuex-session=revuex.tools.session:main",
-        "revuex-upload=revuex.tools.file_upload:main",
-        "revuex-race=revuex.tools.race_condition:main",
-        "revuex-logic=revuex.tools.business_logic:main",
-        "revuex-price=revuex.tools.price_manipulation:main",
-        "revuex-graphql=revuex.tools.graphql:main",
-        "revuex-deps=revuex.tools.dependency:main",
-        
-        # Recon tools
-        "revuex-subdomains=revuex.tools.subdomain_hunter:main",
-        "revuex-tech=revuex.tools.tech_fingerprinter:main",
-        "revuex-secrets=revuex.tools.js_secrets_miner:main",
-        "revuex-apk=revuex.tools.apk:main",
+        # Individual scanner CLIs (will be implemented in tools/)
+        "revuex-ssrf=tools.ssrf:main",
+        "revuex-sqli=tools.sqli:main",
+        "revuex-xss=tools.xss:main",
+        "revuex-idor=tools.idor:main",
+        "revuex-cors=tools.cors:main",
+        "revuex-csrf=tools.csrf:main",
+        "revuex-xxe=tools.xxe:main",
+        "revuex-ssti=tools.ssti:main",
+        "revuex-jwt=tools.jwt_scanner:main",
+        "revuex-session=tools.session:main",
+        "revuex-upload=tools.file_upload:main",
+        "revuex-race=tools.race_condition:main",
+        "revuex-logic=tools.business_logic:main",
+        "revuex-price=tools.price_manipulation:main",
+        "revuex-graphql=tools.graphql:main",
+        "revuex-deps=tools.dependency:main",
+        "revuex-subdomains=tools.subdomain_hunter:main",
+        "revuex-tech=tools.tech_fingerprinter:main",
+        "revuex-secrets=tools.js_secrets_miner:main",
+        "revuex-apk=tools.apk:main",
     ],
 }
 
@@ -267,35 +226,18 @@ ENTRY_POINTS = {
 # =============================================================================
 
 PACKAGE_DATA = {
-    "revuex": [
+    "": [
         # Payload files
         "payloads/*.txt",
         "payloads/*.json",
         "payloads/**/*.txt",
         "payloads/**/*.json",
-        
-        # Templates
-        "templates/*.html",
-        "templates/*.md",
-        "templates/*.jinja2",
-        
-        # Configuration
-        "config/*.yaml",
-        "config/*.yml",
-        
-        # Wordlists
-        "wordlists/*.txt",
     ],
 }
 
-# Files to include in source distribution
-DATA_FILES = [
-    ("", ["README.md", "LICENSE", "requirements.txt"]),
-]
-
 
 # =============================================================================
-# SETUP CONFIGURATION
+# SETUP
 # =============================================================================
 
 setup(
@@ -316,7 +258,6 @@ setup(
         "Documentation": "https://docs.revuex.io",
         "Source": "https://github.com/revuex/revuex",
         "Bug Tracker": "https://github.com/revuex/revuex/issues",
-        "Changelog": "https://github.com/revuex/revuex/blob/main/CHANGELOG.md",
     },
     
     # License
@@ -325,7 +266,7 @@ setup(
     # Classifiers
     classifiers=CLASSIFIERS,
     
-    # Keywords for PyPI
+    # Keywords
     keywords=[
         "security",
         "bug-bounty",
@@ -340,9 +281,7 @@ setup(
         "infosec",
         "appsec",
         "hacking",
-        "security-tools",
         "recon",
-        "automation",
     ],
     
     # Python version
@@ -354,16 +293,12 @@ setup(
         "tests.*",
         "docs",
         "docs.*",
-        "examples",
-        "examples.*",
     ]),
+    py_modules=["revuex_suite"],
     
     # Package data
     package_data=PACKAGE_DATA,
     include_package_data=True,
-    
-    # Data files
-    data_files=DATA_FILES,
     
     # Dependencies
     install_requires=INSTALL_REQUIRES,
@@ -386,32 +321,37 @@ setup(
 
 if __name__ == "__main__":
     print("""
-ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-â                                                                  â
-â   âââââââ âââââââââââ   ââââââ   ââââââââââââââ  âââ            â
-â   âââââââââââââââââââ   ââââââ   âââââââââââââââââââ            â
-â   ââââââââââââââ  âââ   ââââââ   âââââââââ   ââââââ             â
-â   ââââââââââââââ  ââââ âââââââ   âââââââââ   ââââââ             â
-â   âââ  âââââââââââ âââââââ âââââââââââââââââââââ âââ            â
-â   âââ  âââââââââââ  âââââ   âââââââ âââââââââââ  âââ            â
-â                                                                  â
-â          Bug Bounty Automation Framework v1.0.0                  â
-â                                                                  â
-â âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ£
-â                                                                  â
-â  Installation Complete!                                          â
-â                                                                  â
-â  Quick Start:                                                    â
-â    revuex --help              Show all commands                  â
-â    revuex scan -t TARGET      Run full scan                      â
-â    revuex-ssrf -t TARGET      SSRF scanner                       â
-â    revuex-sqli -t TARGET      SQL injection scanner              â
-â                                                                  â
-â  Documentation: https://docs.revuex.io                           â
-â                                                                  â
-â  â ï¸  LEGAL DISCLAIMER:                                           â
-â  Only use on systems you have permission to test.                â
-â  Unauthorized access to computer systems is illegal.             â
-â                                                                  â
-ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+╔══════════════════════════════════════════════════════════════════╗
+║                                                                  ║
+║   ██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗            ║
+║   ██╔══██╗██╔════╝██║   ██║██║   ██║██╔════╝╚██╗██╔╝            ║
+║   ██████╔╝█████╗  ██║   ██║██║   ██║█████╗   ╚███╔╝             ║
+║   ██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══╝   ██╔██╗             ║
+║   ██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗            ║
+║   ╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝            ║
+║                                                                  ║
+║          Bug Bounty Automation Framework v1.0.0                  ║
+║                                                                  ║
+╠══════════════════════════════════════════════════════════════════╣
+║                                                                  ║
+║  Installation Complete!                                          ║
+║                                                                  ║
+║  Quick Start:                                                    ║
+║    revuex --help              Show all commands                  ║
+║    revuex scan -t TARGET      Run full vulnerability scan        ║
+║    python revuex_suite.py     Direct execution                   ║
+║                                                                  ║
+║  Individual Scanners:                                            ║
+║    revuex-ssrf -t TARGET      SSRF scanner                       ║
+║    revuex-sqli -t TARGET      SQL injection scanner              ║
+║    revuex-xss -t TARGET       XSS scanner                        ║
+║    revuex-idor -t TARGET      IDOR scanner                       ║
+║                                                                  ║
+║  Documentation: https://docs.revuex.io                           ║
+║                                                                  ║
+║  ⚠️  LEGAL DISCLAIMER:                                           ║
+║  Only use on systems you have permission to test.                ║
+║  Unauthorized access to computer systems is illegal.             ║
+║                                                                  ║
+╚══════════════════════════════════════════════════════════════════╝
 """)
