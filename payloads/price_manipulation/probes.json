@@ -1,0 +1,182 @@
+
+  {
+    "category": "price",
+    "method": "POST",
+    "path": "/checkout/preview",
+    "json": {
+      "item_id": 1,
+      "price": 0
+    },
+    "description": "Zero price manipulation"
+  },
+  {
+    "category": "price",
+    "method": "POST",
+    "path": "/checkout/preview",
+    "json": {
+      "item_id": 1,
+      "price": 1
+    },
+    "description": "Reduced price manipulation"
+  },
+  {
+    "category": "price",
+    "method": "POST",
+    "path": "/checkout/preview",
+    "json": {
+      "item_id": 1,
+      "price": 0.01
+    },
+    "description": "Penny price manipulation"
+  },
+  {
+    "category": "quantity",
+    "method": "POST",
+    "path": "/checkout/preview",
+    "json": {
+      "item_id": 1,
+      "qty": 100,
+      "total": 1
+    },
+    "description": "Quantity mismatch - high qty, low total"
+  },
+  {
+    "category": "quantity",
+    "method": "POST",
+    "path": "/checkout/preview",
+    "json": {
+      "item_id": 1,
+      "qty": 0,
+      "total": 0
+    },
+    "description": "Zero quantity manipulation"
+  },
+  {
+    "category": "negative",
+    "method": "POST",
+    "path": "/checkout/preview",
+    "json": {
+      "item_id": 1,
+      "qty": -1
+    },
+    "description": "Negative quantity manipulation"
+  },
+  {
+    "category": "negative",
+    "method": "POST",
+    "path": "/checkout/preview",
+    "json": {
+      "item_id": 1,
+      "price": -100
+    },
+    "description": "Negative price manipulation"
+  },
+  {
+    "category": "coupon",
+    "method": "POST",
+    "path": "/checkout/preview",
+    "json": {
+      "coupon": "FREE100"
+    },
+    "description": "Coupon application test"
+  },
+  {
+    "category": "coupon",
+    "method": "POST",
+    "path": "/checkout/preview",
+    "json": {
+      "coupon": "FREE100"
+    },
+    "description": "Coupon reuse test (duplicate)"
+  },
+  {
+    "category": "coupon",
+    "method": "POST",
+    "path": "/checkout/preview",
+    "json": {
+      "coupon": "EXPIRED2023"
+    },
+    "description": "Expired coupon test"
+  },
+  {
+    "category": "subscription",
+    "method": "POST",
+    "path": "/subscription/update",
+    "json": {
+      "plan": "premium",
+      "active": true
+    },
+    "description": "Client-declared premium subscription"
+  },
+  {
+    "category": "subscription",
+    "method": "POST",
+    "path": "/subscription/update",
+    "json": {
+      "plan": "enterprise",
+      "active": true,
+      "paid": true
+    },
+    "description": "Client-declared enterprise with paid flag"
+  },
+  {
+    "category": "trial",
+    "method": "POST",
+    "path": "/subscription/trial",
+    "json": {
+      "trial_used": false
+    },
+    "description": "Trial reset manipulation"
+  },
+  {
+    "category": "trial",
+    "method": "POST",
+    "path": "/subscription/trial",
+    "json": {
+      "trial_days_remaining": 30
+    },
+    "description": "Trial extension manipulation"
+  },
+  {
+    "category": "currency",
+    "method": "POST",
+    "path": "/checkout/preview",
+    "json": {
+      "item_id": 1,
+      "price": 100,
+      "currency": "JPY"
+    },
+    "description": "Currency confusion - JPY vs USD"
+  },
+  {
+    "category": "currency",
+    "method": "POST",
+    "path": "/checkout/preview",
+    "json": {
+      "item_id": 1,
+      "price": 100,
+      "currency": "VND"
+    },
+    "description": "Currency confusion - VND (low value currency)"
+  },
+  {
+    "category": "discount",
+    "method": "POST",
+    "path": "/checkout/preview",
+    "json": {
+      "item_id": 1,
+      "discount_percent": 100
+    },
+    "description": "100% discount manipulation"
+  },
+  {
+    "category": "discount",
+    "method": "POST",
+    "path": "/checkout/preview",
+    "json": {
+      "item_id": 1,
+      "discount_percent": 150
+    },
+    "description": "Over 100% discount manipulation"
+  }
+]
