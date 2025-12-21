@@ -1,0 +1,11 @@
+
+  "method": "POST",
+  "path": "/checkout/preview",
+  "json": {
+    "item_id": 1,
+    "quantity": 1,
+    "price": 99.99,
+    "currency": "USD"
+  },
+  "description": "Legitimate checkout preview request"
+}
