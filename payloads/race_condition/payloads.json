@@ -1,0 +1,158 @@
+{
+  "metadata": {
+    "name": "Race Condition Payloads",
+    "version": "1.0.0",
+    "description": "Race condition testing patterns for REVUEX Race Condition Scanner GOLD",
+    "author": "REVUEX Team"
+  },
+  "common_vulnerable_endpoints": {
+    "description": "Endpoints commonly vulnerable to race conditions",
+    "financial": [
+      "/api/transfer",
+      "/api/withdraw",
+      "/api/deposit",
+      "/api/payment",
+      "/api/checkout",
+      "/api/purchase"
+    ],
+    "coupons_rewards": [
+      "/api/apply-coupon",
+      "/api/redeem",
+      "/api/claim-reward",
+      "/api/use-voucher",
+      "/api/claim-bonus"
+    ],
+    "voting_likes": [
+      "/api/vote",
+      "/api/like",
+      "/api/upvote",
+      "/api/follow",
+      "/api/subscribe"
+    ],
+    "inventory": [
+      "/api/add-to-cart",
+      "/api/reserve",
+      "/api/book",
+      "/api/claim-item"
+    ],
+    "account": [
+      "/api/upgrade",
+      "/api/activate",
+      "/api/register",
+      "/api/invite"
+    ]
+  },
+  "test_scenarios": {
+    "double_spending": {
+      "description": "Transfer same funds twice",
+      "method": "POST",
+      "endpoint": "/api/transfer",
+      "data": {"amount": "100", "to": "attacker_account"}
+    },
+    "coupon_abuse": {
+      "description": "Apply same coupon multiple times",
+      "method": "POST",
+      "endpoint": "/api/apply-coupon",
+      "data": {"code": "DISCOUNT50"}
+    },
+    "vote_manipulation": {
+      "description": "Cast multiple votes",
+      "method": "POST",
+      "endpoint": "/api/vote",
+      "data": {"item_id": "123", "direction": "up"}
+    },
+    "inventory_oversell": {
+      "description": "Purchase last item multiple times",
+      "method": "POST",
+      "endpoint": "/api/checkout",
+      "data": {"item_id": "limited_item", "quantity": 1}
+    },
+    "reward_claim": {
+      "description": "Claim same reward multiple times",
+      "method": "POST",
+      "endpoint": "/api/claim-reward",
+      "data": {"reward_id": "daily_bonus"}
+    }
+  },
+  "thread_configurations": {
+    "light": {"threads": 3, "window": 0.1},
+    "medium": {"threads": 5, "window": 0.05},
+    "aggressive": {"threads": 10, "window": 0.02},
+    "burst": {"threads": 20, "window": 0}
+  },
+  "success_indicators": {
+    "positive": [
+      "success",
+      "completed",
+      "transferred",
+      "applied",
+      "redeemed",
+      "voted",
+      "purchased"
+    ],
+    "negative": [
+      "already",
+      "duplicate",
+      "limit",
+      "exceeded",
+      "insufficient",
+      "invalid",
+      "expired"
+    ]
+  },
+  "response_analysis": {
+    "description": "What to look for in responses",
+    "indicators": {
+      "vulnerability_present": [
+        "Multiple 200/201 responses",
+        "All requests show success message",
+        "No 'already used' errors",
+        "Response bodies identical",
+        "Balance changes match request count"
+      ],
+      "protection_present": [
+        "Only first request succeeds",
+        "Subsequent requests return 4xx",
+        "'Already processed' errors",
+        "Idempotency key rejection",
+        "Database constraint errors"
+      ]
+    }
+  },
+  "mitigation_checks": {
+    "description": "Patterns that indicate proper protection",
+    "database_locks": [
+      "Lock wait timeout",
+      "Deadlock",
+      "Row was updated by another transaction"
+    ],
+    "application_locks": [
+      "Request already in progress",
+      "Duplicate request detected",
+      "Idempotency key already used"
+    ],
+    "rate_limiting": [
+      "Too many requests",
+      "Rate limit exceeded",
+      "Please try again later"
+    ]
+  },
+  "framework_specific": {
+    "rails": {
+      "protection": "with_lock, optimistic_locking",
+      "indicator": "StaleObjectError"
+    },
+    "django": {
+      "protection": "select_for_update, F() expressions",
+      "indicator": "OperationalError"
+    },
+    "spring": {
+      "protection": "@Transactional, @Version",
+      "indicator": "OptimisticLockingFailureException"
+    },
+    "nodejs": {
+      "protection": "Redis locks, database transactions",
+      "indicator": "Lock already held"
+    }
+  }
+}
