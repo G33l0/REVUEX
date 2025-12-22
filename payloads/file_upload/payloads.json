@@ -1,0 +1,59 @@
+{
+  "metadata": {
+    "name": "File Upload Payloads",
+    "version": "1.0.0",
+    "description": "File upload testing payloads for REVUEX File Upload Scanner GOLD",
+    "author": "REVUEX Team"
+  },
+  "magic_bytes": {
+    "description": "Magic bytes for common file types (hex encoded)",
+    "bytes": {
+      "png": "89504E470D0A1A0A",
+      "jpg": "FFD8FFE0",
+      "gif89a": "474946383961",
+      "gif87a": "474946383761",
+      "pdf": "255044462D312E34",
+      "zip": "504B0304",
+      "rar": "526172211A07",
+      "bmp": "424D",
+      "doc": "D0CF11E0",
+      "docx": "504B0304",
+      "exe": "4D5A",
+      "elf": "7F454C46"
+    }
+  },
+  "dangerous_extensions": {
+    "php": ["php", "php3", "php4", "php5", "php7", "phtml", "phar"],
+    "asp": ["asp", "aspx", "asa", "ashx", "asmx", "cer"],
+    "jsp": ["jsp", "jspx", "jsf"],
+    "script": ["py", "rb", "pl", "cgi", "sh"],
+    "windows": ["exe", "dll", "bat", "cmd", "ps1", "vbs"],
+    "config": ["htaccess", "htpasswd", "config", "ini"],
+    "web": ["html", "htm", "svg", "xml", "xsl", "shtml"]
+  },
+  "bypass_techniques": {
+    "double_extension": ["test.php.jpg", "test.asp.png", "test.jsp.gif"],
+    "null_byte": ["test.php%00.jpg", "test.asp%00.png"],
+    "case_variation": ["test.PHP", "test.Php", "test.pHp", "test.PhP"],
+    "trailing_chars": ["test.php.", "test.php ", "test.php::$DATA"],
+    "special_chars": ["test;.jpg", "test|.jpg", "test`.jpg", "test$.jpg"],
+    "path_traversal": ["../../../tmp/test.php", "..\\..\\..\\tmp\\test.php"]
+  },
+  "content_type_spoofing": {
+    "image_claims": ["image/jpeg", "image/png", "image/gif"],
+    "safe_claims": ["text/plain", "application/pdf"],
+    "dangerous_actual": ["application/x-php", "text/x-php"]
+  },
+  "common_upload_fields": [
+    "file", "upload", "document", "attachment", "image",
+    "photo", "avatar", "resume", "files[]", "Filedata"
+  ],
+  "common_endpoints": [
+    "/upload", "/api/upload", "/file/upload", "/image/upload",
+    "/media/upload", "/attachment/upload", "/uploads/"
+  ],
+  "response_indicators": {
+    "success": ["upload successful", "file uploaded", "successfully uploaded"],
+    "failure": ["invalid file type", "extension not allowed", "upload failed"]
+  }
+}
