@@ -1,0 +1,282 @@
+{
+  "metadata": {
+    "name": "Session Management Payloads",
+    "version": "1.0.0",
+    "description": "Session testing patterns for REVUEX Session Scanner GOLD",
+    "author": "REVUEX Team"
+  },
+  "session_cookie_patterns": {
+    "description": "Common session cookie name patterns",
+    "patterns": [
+      "session",
+      "sess",
+      "sid",
+      "sessionid",
+      "session_id",
+      "PHPSESSID",
+      "JSESSIONID",
+      "ASP.NET_SessionId",
+      "ASPSESSIONID",
+      "CFID",
+      "CFTOKEN",
+      "connect.sid",
+      "express.sid",
+      "laravel_session",
+      "rack.session",
+      "_session",
+      "wordpress_logged_in",
+      "wp-settings",
+      "auth_token",
+      "authtoken",
+      "access_token",
+      "refresh_token",
+      "jwt",
+      "bearer",
+      "token",
+      "api_token",
+      "user_session",
+      "remember_token",
+      "csrf_token",
+      "_csrf"
+    ]
+  },
+  "auth_endpoints": {
+    "description": "Common authentication endpoints",
+    "login": [
+      "/login",
+      "/signin",
+      "/auth/login",
+      "/api/login",
+      "/api/auth/login",
+      "/api/v1/login",
+      "/api/v1/auth/login",
+      "/user/login",
+      "/users/sign_in",
+      "/account/login",
+      "/authenticate",
+      "/oauth/token",
+      "/auth/token"
+    ],
+    "logout": [
+      "/logout",
+      "/signout",
+      "/auth/logout",
+      "/api/logout",
+      "/api/auth/logout",
+      "/api/v1/logout",
+      "/user/logout",
+      "/users/sign_out",
+      "/account/logout",
+      "/session/destroy"
+    ],
+    "register": [
+      "/register",
+      "/signup",
+      "/auth/register",
+      "/api/register",
+      "/users/sign_up",
+      "/account/register"
+    ]
+  },
+  "session_headers": {
+    "description": "Headers that may contain session info",
+    "headers": [
+      "Authorization",
+      "X-Auth-Token",
+      "X-Access-Token",
+      "X-Session-Token",
+      "X-API-Key",
+      "X-CSRF-Token",
+      "X-XSRF-Token",
+      "X-Request-Token",
+      "Bearer",
+      "Cookie"
+    ]
+  },
+  "cookie_attributes": {
+    "description": "Secure cookie attributes to check",
+    "required": {
+      "Secure": {
+        "description": "Cookie only sent over HTTPS",
+        "severity": "high"
+      },
+      "HttpOnly": {
+        "description": "Cookie not accessible via JavaScript",
+        "severity": "high"
+      },
+      "SameSite": {
+        "description": "CSRF protection via same-site restriction",
+        "severity": "medium",
+        "values": ["Strict", "Lax", "None"]
+      }
+    },
+    "recommended": {
+      "Path": {
+        "description": "Restrict cookie to specific path",
+        "recommended_value": "/"
+      },
+      "Domain": {
+        "description": "Restrict cookie to specific domain",
+        "note": "Should not be overly permissive"
+      },
+      "Max-Age": {
+        "description": "Cookie expiration time",
+        "recommended_max": 86400,
+        "note": "Session cookies should have reasonable lifetime"
+      }
+    }
+  },
+  "entropy_thresholds": {
+    "description": "Token entropy requirements",
+    "minimum_entropy_per_char": 3.5,
+    "minimum_token_length": 16,
+    "recommended_entropy_bits": 128,
+    "weak_entropy_indicators": [
+      "Sequential numbers",
+      "Timestamp-based",
+      "User ID embedded",
+      "Predictable patterns"
+    ]
+  },
+  "fixation_test_flow": {
+    "description": "Session fixation test methodology",
+    "steps": [
+      "1. Capture session token before authentication (unauth state)",
+      "2. Perform authentication",
+      "3. Capture session token after authentication (auth state)",
+      "4. Compare tokens - if identical, session fixation exists",
+      "5. Check if old session is invalidated"
+    ]
+  },
+  "logout_invalidation_test": {
+    "description": "Logout invalidation test methodology",
+    "steps": [
+      "1. Authenticate and capture session token",
+      "2. Perform logout",
+      "3. Attempt to use old session token",
+      "4. If access granted, session not properly invalidated"
+    ]
+  },
+  "desync_test_patterns": {
+    "description": "Header/Cookie desynchronization tests",
+    "patterns": [
+      {
+        "name": "Header override",
+        "description": "Send conflicting session in header vs cookie",
+        "cookie": "valid_session",
+        "header": "different_session"
+      },
+      {
+        "name": "Multiple cookies",
+        "description": "Send multiple session cookies",
+        "cookies": ["session1", "session2"]
+      },
+      {
+        "name": "Case variation",
+        "description": "Send session in different case header",
+        "header_variations": ["X-Session", "x-session", "X-SESSION"]
+      }
+    ]
+  },
+  "common_vulnerabilities": {
+    "description": "Common session management vulnerabilities",
+    "vulnerabilities": {
+      "session_fixation": {
+        "severity": "critical",
+        "description": "Session token not regenerated after login",
+        "impact": "Account takeover via pre-set session"
+      },
+      "insufficient_session_expiration": {
+        "severity": "medium",
+        "description": "Session remains valid too long",
+        "impact": "Extended attack window"
+      },
+      "missing_logout_invalidation": {
+        "severity": "high",
+        "description": "Session not destroyed on logout",
+        "impact": "Session reuse after logout"
+      },
+      "insecure_cookie_attributes": {
+        "severity": "high",
+        "description": "Missing Secure/HttpOnly/SameSite",
+        "impact": "Session theft via XSS/MITM/CSRF"
+      },
+      "predictable_session_id": {
+        "severity": "high",
+        "description": "Session IDs can be guessed",
+        "impact": "Session hijacking"
+      },
+      "session_in_url": {
+        "severity": "high",
+        "description": "Session token in URL parameters",
+        "impact": "Session leakage via referrer/logs"
+      },
+      "concurrent_session_abuse": {
+        "severity": "medium",
+        "description": "No limit on concurrent sessions",
+        "impact": "Shared credential abuse"
+      }
+    }
+  },
+  "framework_specific": {
+    "description": "Framework-specific session configurations",
+    "php": {
+      "cookie_name": "PHPSESSID",
+      "config_file": "php.ini",
+      "secure_settings": [
+        "session.cookie_secure = 1",
+        "session.cookie_httponly = 1",
+        "session.cookie_samesite = Strict",
+        "session.use_strict_mode = 1",
+        "session.use_only_cookies = 1"
+      ]
+    },
+    "java": {
+      "cookie_name": "JSESSIONID",
+      "secure_settings": [
+        "secure=true in web.xml",
+        "http-only=true in web.xml"
+      ]
+    },
+    "aspnet": {
+      "cookie_name": "ASP.NET_SessionId",
+      "config_file": "web.config",
+      "secure_settings": [
+        "requireSSL=true",
+        "httpOnlyCookies=true"
+      ]
+    },
+    "express": {
+      "cookie_name": "connect.sid",
+      "secure_settings": [
+        "cookie.secure: true",
+        "cookie.httpOnly: true",
+        "cookie.sameSite: 'strict'"
+      ]
+    },
+    "rails": {
+      "cookie_name": "_session_id",
+      "secure_settings": [
+        "config.session_store :cookie_store, secure: true",
+        "config.action_dispatch.cookies_same_site_protection = :strict"
+      ]
+    },
+    "django": {
+      "cookie_name": "sessionid",
+      "secure_settings": [
+        "SESSION_COOKIE_SECURE = True",
+        "SESSION_COOKIE_HTTPONLY = True",
+        "SESSION_COOKIE_SAMESITE = 'Strict'"
+      ]
+    },
+    "laravel": {
+      "cookie_name": "laravel_session",
+      "config_file": "config/session.php",
+      "secure_settings": [
+        "'secure' => true",
+        "'http_only' => true",
+        "'same_site' => 'strict'"
+      ]
+    }
+  }
+}
