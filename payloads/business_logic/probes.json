@@ -1,0 +1,271 @@
+{
+  "metadata": {
+    "name": "Business Logic Testing Probes",
+    "version": "1.0.0",
+    "description": "Business logic vulnerability probes for REVUEX Business Logic Scanner GOLD",
+    "author": "REVUEX Team"
+  },
+  "workflow_probes": {
+    "description": "Workflow state enforcement probes",
+    "probes": [
+      {
+        "category": "workflow",
+        "name": "Skip payment step",
+        "method": "POST",
+        "path": "/order/complete",
+        "json": {"order_id": 123, "status": "paid"}
+      },
+      {
+        "category": "workflow",
+        "name": "Skip verification step",
+        "method": "POST",
+        "path": "/account/activate",
+        "json": {"user_id": 123, "verified": true}
+      },
+      {
+        "category": "workflow",
+        "name": "Direct to final state",
+        "method": "POST",
+        "path": "/order/ship",
+        "json": {"order_id": 123}
+      },
+      {
+        "category": "workflow",
+        "name": "Reverse state transition",
+        "method": "POST",
+        "path": "/order/reopen",
+        "json": {"order_id": 123, "status": "pending"}
+      }
+    ]
+  },
+  "pricing_probes": {
+    "description": "Price manipulation probes",
+    "probes": [
+      {
+        "category": "pricing",
+        "name": "Zero price",
+        "method": "POST",
+        "path": "/checkout/preview",
+        "json": {"item_id": 1, "price": 0}
+      },
+      {
+        "category": "pricing",
+        "name": "Negative price",
+        "method": "POST",
+        "path": "/checkout/preview",
+        "json": {"item_id": 1, "price": -100}
+      },
+      {
+        "category": "pricing",
+        "name": "Decimal manipulation",
+        "method": "POST",
+        "path": "/checkout/preview",
+        "json": {"item_id": 1, "price": 0.001}
+      },
+      {
+        "category": "pricing",
+        "name": "Client total override",
+        "method": "POST",
+        "path": "/checkout/preview",
+        "json": {"items": [{"id": 1, "qty": 10}], "total": 1}
+      }
+    ]
+  },
+  "quantity_probes": {
+    "description": "Quantity manipulation probes",
+    "probes": [
+      {
+        "category": "quantity",
+        "name": "Negative quantity",
+        "method": "POST",
+        "path": "/cart/add",
+        "json": {"item_id": 1, "quantity": -5}
+      },
+      {
+        "category": "quantity",
+        "name": "Zero quantity",
+        "method": "POST",
+        "path": "/cart/add",
+        "json": {"item_id": 1, "quantity": 0}
+      },
+      {
+        "category": "quantity",
+        "name": "Excessive quantity",
+        "method": "POST",
+        "path": "/cart/add",
+        "json": {"item_id": 1, "quantity": 999999999}
+      },
+      {
+        "category": "quantity",
+        "name": "Decimal quantity",
+        "method": "POST",
+        "path": "/cart/add",
+        "json": {"item_id": 1, "quantity": 0.1}
+      },
+      {
+        "category": "quantity",
+        "name": "String quantity",
+        "method": "POST",
+        "path": "/cart/add",
+        "json": {"item_id": 1, "quantity": "1"}
+      }
+    ]
+  },
+  "capability_probes": {
+    "description": "Role/capability testing probes",
+    "probes": [
+      {
+        "category": "capability",
+        "name": "Admin action as user",
+        "method": "POST",
+        "path": "/admin/users/delete",
+        "json": {"user_id": 123}
+      },
+      {
+        "category": "capability",
+        "name": "Modify other user",
+        "method": "PUT",
+        "path": "/api/users/456",
+        "json": {"role": "admin"}
+      },
+      {
+        "category": "capability",
+        "name": "Access restricted resource",
+        "method": "GET",
+        "path": "/api/admin/config"
+      },
+      {
+        "category": "capability",
+        "name": "Bypass approval",
+        "method": "POST",
+        "path": "/api/transactions/approve",
+        "json": {"transaction_id": 123, "approved": true}
+      }
+    ]
+  },
+  "temporal_probes": {
+    "description": "Time-based rule probes",
+    "probes": [
+      {
+        "category": "temporal",
+        "name": "Expired promo code",
+        "method": "POST",
+        "path": "/checkout/apply-promo",
+        "json": {"code": "EXPIRED2023"}
+      },
+      {
+        "category": "temporal",
+        "name": "Future dated action",
+        "method": "POST",
+        "path": "/api/schedule",
+        "json": {"action": "release", "date": "2020-01-01"}
+      },
+      {
+        "category": "temporal",
+        "name": "After deadline action",
+        "method": "POST",
+        "path": "/api/submission",
+        "json": {"submission_id": 123, "late_submit": true}
+      },
+      {
+        "category": "temporal",
+        "name": "Rate limit bypass",
+        "method": "POST",
+        "path": "/api/action",
+        "json": {"action": "repeat", "count": 100}
+      }
+    ]
+  },
+  "coupon_probes": {
+    "description": "Coupon/discount abuse probes",
+    "probes": [
+      {
+        "category": "coupon",
+        "name": "Coupon reuse",
+        "method": "POST",
+        "path": "/checkout/apply-coupon",
+        "json": {"coupon": "USED_COUPON"}
+      },
+      {
+        "category": "coupon",
+        "name": "Coupon stacking",
+        "method": "POST",
+        "path": "/checkout/apply-coupon",
+        "json": {"coupons": ["COUPON1", "COUPON2"]}
+      },
+      {
+        "category": "coupon",
+        "name": "Over 100% discount",
+        "method": "POST",
+        "path": "/checkout/apply-coupon",
+        "json": {"coupon": "FAKE", "discount_percent": 150}
+      },
+      {
+        "category": "coupon",
+        "name": "Referral abuse",
+        "method": "POST",
+        "path": "/api/referral/apply",
+        "json": {"referral_code": "SELF_REFERRAL"}
+      }
+    ]
+  },
+  "idempotency_probes": {
+    "description": "Idempotency/replay probes",
+    "probes": [
+      {
+        "category": "idempotency",
+        "name": "Duplicate transaction",
+        "method": "POST",
+        "path": "/api/transfer",
+        "json": {"amount": 100, "to": "victim"},
+        "repeat": 2
+      },
+      {
+        "category": "idempotency",
+        "name": "Replay vote",
+        "method": "POST",
+        "path": "/api/vote",
+        "json": {"option": "A"},
+        "repeat": 10
+      },
+      {
+        "category": "idempotency",
+        "name": "Replay reward claim",
+        "method": "POST",
+        "path": "/api/rewards/claim",
+        "json": {"reward_id": 123},
+        "repeat": 5
+      }
+    ]
+  },
+  "baseline_examples": {
+    "description": "Example baseline requests",
+    "ecommerce": {
+      "method": "POST",
+      "path": "/checkout/preview",
+      "json": {
+        "items": [{"id": 1, "quantity": 1, "price": 99.99}],
+        "shipping": "standard",
+        "currency": "USD"
+      }
+    },
+    "banking": {
+      "method": "POST",
+      "path": "/api/transfer",
+      "json": {
+        "from_account": "123",
+        "to_account": "456",
+        "amount": 100,
+        "currency": "USD"
+      }
+    },
+    "subscription": {
+      "method": "POST",
+      "path": "/api/subscription/update",
+      "json": {
+        "plan": "basic",
+        "billing_cycle": "monthly"
+      }
+    }
+  }
+}

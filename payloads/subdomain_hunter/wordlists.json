@@ -1,0 +1,234 @@
+{
+  "metadata": {
+    "name": "Subdomain Wordlists",
+    "version": "1.0.0",
+    "description": "Subdomain enumeration wordlists for REVUEX Subdomain Hunter GOLD",
+    "author": "REVUEX Team"
+  },
+  "common_subdomains": {
+    "description": "Most common subdomains",
+    "wordlist": [
+      "www", "mail", "ftp", "localhost", "webmail", "smtp", "pop", "ns1", "ns2",
+      "ns3", "ns4", "dns", "dns1", "dns2", "mx", "mx1", "mx2", "api", "dev",
+      "staging", "stage", "test", "testing", "prod", "production", "app", "apps",
+      "admin", "administrator", "panel", "portal", "cpanel", "webmin", "dashboard",
+      "login", "signin", "sso", "auth", "oauth", "cdn", "static", "assets", "img",
+      "images", "media", "files", "upload", "uploads", "download", "downloads"
+    ]
+  },
+  "development_subdomains": {
+    "description": "Development/staging related subdomains",
+    "wordlist": [
+      "dev", "dev1", "dev2", "dev3", "development", "develop", "devel",
+      "staging", "stage", "stg", "stag", "preprod", "pre-prod", "preproduction",
+      "test", "test1", "test2", "test3", "testing", "qa", "qa1", "qa2",
+      "uat", "uat1", "uat2", "sandbox", "demo", "demo1", "demo2",
+      "beta", "alpha", "canary", "preview", "next", "new", "old",
+      "backup", "bak", "temp", "tmp", "local", "localhost"
+    ]
+  },
+  "infrastructure_subdomains": {
+    "description": "Infrastructure related subdomains",
+    "wordlist": [
+      "ns1", "ns2", "ns3", "ns4", "dns", "dns1", "dns2", "dns3",
+      "mx", "mx1", "mx2", "mx3", "mail", "mail1", "mail2", "smtp", "pop", "imap",
+      "vpn", "vpn1", "vpn2", "remote", "gateway", "gw", "firewall", "fw",
+      "proxy", "proxy1", "proxy2", "squid", "cache", "cdn", "cdn1", "cdn2",
+      "lb", "lb1", "lb2", "loadbalancer", "haproxy", "nginx", "apache",
+      "db", "db1", "db2", "database", "mysql", "postgres", "postgresql",
+      "mongo", "mongodb", "redis", "memcached", "elastic", "elasticsearch",
+      "ldap", "ad", "dc", "dc1", "dc2", "kerberos", "ntp", "time"
+    ]
+  },
+  "application_subdomains": {
+    "description": "Application related subdomains",
+    "wordlist": [
+      "api", "api1", "api2", "api-v1", "api-v2", "rest", "graphql", "grpc",
+      "app", "apps", "application", "web", "webapp", "webapps",
+      "mobile", "m", "ios", "android", "client", "clients",
+      "portal", "dashboard", "console", "panel", "control",
+      "shop", "store", "cart", "checkout", "payment", "pay", "billing",
+      "blog", "news", "press", "media", "content", "cms",
+      "forum", "community", "support", "help", "helpdesk", "ticket", "tickets",
+      "chat", "im", "messaging", "slack", "teams"
+    ]
+  },
+  "admin_subdomains": {
+    "description": "Administrative subdomains (high value targets)",
+    "wordlist": [
+      "admin", "admin1", "admin2", "administrator", "adm",
+      "panel", "cpanel", "whm", "webmin", "plesk",
+      "manage", "manager", "management", "control", "controlpanel",
+      "backend", "backoffice", "back", "internal", "intranet",
+      "staff", "employee", "employees", "corp", "corporate",
+      "secure", "security", "sec", "private", "restricted",
+      "root", "superuser", "su", "sysadmin", "ops", "devops"
+    ]
+  },
+  "ci_cd_subdomains": {
+    "description": "CI/CD and DevOps subdomains",
+    "wordlist": [
+      "jenkins", "ci", "cd", "build", "builds", "builder",
+      "gitlab", "git", "github", "bitbucket", "svn", "repo", "repos", "repository",
+      "docker", "k8s", "kubernetes", "kube", "rancher", "openshift",
+      "ansible", "puppet", "chef", "terraform", "vault",
+      "artifactory", "nexus", "harbor", "registry",
+      "grafana", "prometheus", "kibana", "elastic", "splunk", "datadog",
+      "sentry", "newrelic", "dynatrace", "monitoring", "monitor", "metrics",
+      "sonar", "sonarqube", "codeclimate", "coveralls"
+    ]
+  },
+  "cloud_subdomains": {
+    "description": "Cloud service related subdomains",
+    "wordlist": [
+      "aws", "amazon", "ec2", "s3", "lambda", "cloudfront",
+      "azure", "microsoft", "office", "office365", "sharepoint",
+      "gcp", "google", "gcloud", "firebase", "appengine",
+      "heroku", "digitalocean", "do", "linode", "vultr",
+      "cloudflare", "cf", "fastly", "akamai",
+      "vercel", "netlify", "render", "railway"
+    ]
+  },
+  "sensitive_keywords": {
+    "description": "Keywords indicating sensitive subdomains",
+    "wordlist": [
+      "admin", "root", "backup", "bak", "old", "dev", "test", "staging",
+      "internal", "private", "secret", "secure", "vpn", "gateway",
+      "db", "database", "sql", "mysql", "postgres", "mongo", "redis",
+      "jenkins", "gitlab", "git", "ci", "cd", "build",
+      "api", "rest", "graphql", "auth", "oauth", "sso", "login",
+      "ftp", "sftp", "ssh", "rdp", "vnc", "remote",
+      "mail", "smtp", "pop", "imap", "webmail", "exchange",
+      "jira", "confluence", "wiki", "docs", "documentation"
+    ]
+  },
+  "takeover_indicators": {
+    "description": "Subdomain takeover indicators by service",
+    "services": {
+      "github_pages": {
+        "cname_patterns": ["github.io", "githubusercontent.com"],
+        "error_patterns": ["There isn't a GitHub Pages site here"]
+      },
+      "heroku": {
+        "cname_patterns": ["herokuapp.com", "herokussl.com"],
+        "error_patterns": ["No such app", "no-such-app"]
+      },
+      "aws_s3": {
+        "cname_patterns": ["s3.amazonaws.com", "s3-website"],
+        "error_patterns": ["NoSuchBucket", "The specified bucket does not exist"]
+      },
+      "aws_cloudfront": {
+        "cname_patterns": ["cloudfront.net"],
+        "error_patterns": ["Bad request", "The request could not be satisfied"]
+      },
+      "azure": {
+        "cname_patterns": ["azurewebsites.net", "cloudapp.azure.com", "azure-api.net"],
+        "error_patterns": ["404 Web Site not found"]
+      },
+      "shopify": {
+        "cname_patterns": ["myshopify.com"],
+        "error_patterns": ["Sorry, this shop is currently unavailable"]
+      },
+      "fastly": {
+        "cname_patterns": ["fastly.net"],
+        "error_patterns": ["Fastly error: unknown domain"]
+      },
+      "pantheon": {
+        "cname_patterns": ["pantheonsite.io"],
+        "error_patterns": ["404 error unknown site"]
+      },
+      "tumblr": {
+        "cname_patterns": ["tumblr.com"],
+        "error_patterns": ["There's nothing here", "Whatever you were looking for"]
+      },
+      "wordpress": {
+        "cname_patterns": ["wordpress.com"],
+        "error_patterns": ["Do you want to register"]
+      },
+      "ghost": {
+        "cname_patterns": ["ghost.io"],
+        "error_patterns": ["The thing you were looking for is no longer here"]
+      },
+      "surge": {
+        "cname_patterns": ["surge.sh"],
+        "error_patterns": ["project not found"]
+      },
+      "bitbucket": {
+        "cname_patterns": ["bitbucket.io"],
+        "error_patterns": ["Repository not found"]
+      },
+      "intercom": {
+        "cname_patterns": ["custom.intercom.help"],
+        "error_patterns": ["This page is reserved for"]
+      },
+      "helpjuice": {
+        "cname_patterns": ["helpjuice.com"],
+        "error_patterns": ["We could not find what you're looking for"]
+      },
+      "helpscout": {
+        "cname_patterns": ["helpscoutdocs.com"],
+        "error_patterns": ["No settings were found for this company"]
+      },
+      "cargo": {
+        "cname_patterns": ["cargocollective.com"],
+        "error_patterns": ["404 Not Found"]
+      },
+      "statuspage": {
+        "cname_patterns": ["statuspage.io"],
+        "error_patterns": ["You are being redirected"]
+      },
+      "uservoice": {
+        "cname_patterns": ["uservoice.com"],
+        "error_patterns": ["This UserVoice subdomain is currently available"]
+      },
+      "zendesk": {
+        "cname_patterns": ["zendesk.com"],
+        "error_patterns": ["Help Center Closed"]
+      },
+      "teamwork": {
+        "cname_patterns": ["teamwork.com"],
+        "error_patterns": ["Oops - We didn't find your site"]
+      },
+      "unbounce": {
+        "cname_patterns": ["unbouncepages.com"],
+        "error_patterns": ["The requested URL was not found"]
+      },
+      "tictail": {
+        "cname_patterns": ["tictail.com"],
+        "error_patterns": ["to target URL: <a href=\"https://tictail.com"]
+      },
+      "campaignmonitor": {
+        "cname_patterns": ["createsend.com"],
+        "error_patterns": ["Double check the URL"]
+      },
+      "acquia": {
+        "cname_patterns": ["acquia-test.co"],
+        "error_patterns": ["Web Site Not Found"]
+      },
+      "simplebooklet": {
+        "cname_patterns": ["simplebooklet.com"],
+        "error_patterns": ["We can't find this SimpleBoolet"]
+      },
+      "getresponse": {
+        "cname_patterns": ["gr8.com"],
+        "error_patterns": ["With GetResponse Landing Pages"]
+      },
+      "vend": {
+        "cname_patterns": ["vendecommerce.com"],
+        "error_patterns": ["Looks like you've traveled too far"]
+      },
+      "jetbrains": {
+        "cname_patterns": ["myjetbrains.com"],
+        "error_patterns": ["is not a registered InCloud YouTrack"]
+      },
+      "readthedocs": {
+        "cname_patterns": ["readthedocs.io"],
+        "error_patterns": ["unknown to Read the Docs"]
+      },
+      "launchrock": {
+        "cname_patterns": ["launchrock.com"],
+        "error_patterns": ["It looks like you may have taken a wrong turn"]
+      }
+    }
+  }
+}

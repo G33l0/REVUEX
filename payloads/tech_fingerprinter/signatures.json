@@ -1,0 +1,212 @@
+{
+  "metadata": {
+    "name": "Tech Fingerprinting Signatures",
+    "version": "1.0.0",
+    "description": "Technology fingerprinting signatures for REVUEX Tech Fingerprinter GOLD",
+    "author": "REVUEX Team"
+  },
+  "cookie_signatures": {
+    "description": "Cookie-based framework detection",
+    "signatures": {
+      "django": ["csrftoken", "sessionid", "django_language", "messages"],
+      "flask": ["session", "remember_token"],
+      "laravel": ["laravel_session", "XSRF-TOKEN", "laravel_token"],
+      "rails": ["_session_id", "_rails_session", "_app_session"],
+      "express": ["connect.sid", "express.sid"],
+      "spring": ["JSESSIONID"],
+      "aspnet": [".AspNetCore.Session", "ASP.NET_SessionId", ".AspNet.ApplicationCookie", ".AspNetCore.Identity"],
+      "php": ["PHPSESSID"],
+      "tomcat": ["JSESSIONID"],
+      "coldfusion": ["CFID", "CFTOKEN", "CFAUTHORIZATION_"],
+      "play": ["PLAY_SESSION", "PLAY_LANG"],
+      "phoenix": ["_phoenix_session", "_csrf_token"],
+      "wordpress": ["wordpress_logged_in_", "wordpress_sec_", "wp-settings-"],
+      "drupal": ["SSESS", "SESS", "Drupal.visitor."],
+      "joomla": ["joomla_user_state", "mosvisitor"],
+      "magento": ["frontend", "PHPSESSID", "adminhtml"],
+      "shopify": ["_shopify_s", "_shopify_y", "cart"],
+      "supabase": ["sb-access-token", "sb-refresh-token"]
+    }
+  },
+  "header_signatures": {
+    "description": "HTTP header-based detection",
+    "server_headers": {
+      "nginx": ["nginx", "openresty"],
+      "apache": ["Apache", "mod_ssl", "mod_perl", "mod_python"],
+      "iis": ["Microsoft-IIS", "Microsoft-HTTPAPI"],
+      "litespeed": ["LiteSpeed"],
+      "caddy": ["Caddy"],
+      "tomcat": ["Apache-Coyote", "Apache Tomcat"],
+      "jetty": ["Jetty"],
+      "gunicorn": ["gunicorn"],
+      "uvicorn": ["uvicorn"],
+      "werkzeug": ["Werkzeug"],
+      "cherrypy": ["CherryPy"],
+      "tornado": ["TornadoServer"],
+      "cowboy": ["Cowboy"],
+      "kestrel": ["Kestrel"],
+      "undertow": ["Undertow"],
+      "weblogic": ["WebLogic"],
+      "websphere": ["WebSphere"]
+    },
+    "powered_by": {
+      "php": ["PHP"],
+      "aspnet": ["ASP.NET"],
+      "express": ["Express"],
+      "next": ["Next.js"],
+      "nuxt": ["Nuxt"],
+      "rails": ["Phusion Passenger"],
+      "django": ["Django"],
+      "flask": ["Flask"],
+      "laravel": ["Laravel"]
+    },
+    "waf_cdn": {
+      "cloudflare": ["cf-ray", "cf-cache-status", "cf-request-id", "__cfduid"],
+      "akamai": ["x-akamai-transformed", "akamai-x-cache", "x-akamai-request-id"],
+      "fastly": ["x-served-by", "x-cache", "x-cache-hits", "fastly-debug-digest"],
+      "cloudfront": ["x-amz-cf-id", "x-amz-cf-pop", "x-cache"],
+      "incapsula": ["x-iinfo", "x-cdn"],
+      "sucuri": ["x-sucuri-id", "x-sucuri-cache"],
+      "stackpath": ["x-hw"],
+      "varnish": ["x-varnish", "via"],
+      "azure_cdn": ["x-azure-ref", "x-msedge-ref"],
+      "google_cloud": ["x-goog-hash", "x-guploader-uploadid"],
+      "aws_elb": ["x-amzn-requestid", "x-amzn-trace-id"]
+    }
+  },
+  "asset_patterns": {
+    "description": "Asset path patterns for framework detection",
+    "patterns": {
+      "nextjs": ["/_next/static/", "/_next/image", "/_next/data/"],
+      "nuxt": ["/_nuxt/", "/_loading/"],
+      "react": ["/static/js/main.", "/static/js/bundle.", "/static/js/runtime-main."],
+      "vue": ["/js/app.", "/js/chunk-vendors.", "/css/app."],
+      "angular": ["/main.", "/polyfills.", "/runtime.", "/vendor."],
+      "gatsby": ["/static/", "/page-data/", "/chunk-map.json"],
+      "svelte": ["/_app/immutable/", "/_app/version.json"],
+      "rails": ["/assets/application-", "/packs/"],
+      "django": ["/static/admin/", "/static/rest_framework/"],
+      "laravel": ["/css/app.css", "/js/app.js", "/vendor/"],
+      "wordpress": ["/wp-content/", "/wp-includes/", "/wp-admin/"],
+      "drupal": ["/sites/default/files/", "/modules/", "/themes/"],
+      "joomla": ["/media/jui/", "/templates/", "/administrator/"],
+      "magento": ["/static/version", "/pub/static/", "/media/catalog/"],
+      "shopify": ["cdn.shopify.com", "/cdn/shop/"],
+      "wix": ["static.wixstatic.com", "wixsite.com"],
+      "squarespace": ["static.squarespace.com", "sqspcdn.com"],
+      "webflow": ["assets.website-files.com", "uploads-ssl.webflow.com"]
+    }
+  },
+  "meta_generators": {
+    "description": "Meta generator tag patterns",
+    "patterns": {
+      "wordpress": ["WordPress"],
+      "drupal": ["Drupal"],
+      "joomla": ["Joomla"],
+      "ghost": ["Ghost"],
+      "hugo": ["Hugo"],
+      "jekyll": ["Jekyll"],
+      "gatsby": ["Gatsby"],
+      "hexo": ["Hexo"],
+      "vuepress": ["VuePress"],
+      "docusaurus": ["Docusaurus"],
+      "mkdocs": ["mkdocs"],
+      "sphinx": ["Sphinx"],
+      "pelican": ["Pelican"],
+      "eleventy": ["Eleventy"],
+      "gridsome": ["Gridsome"],
+      "sapper": ["Sapper"],
+      "wix": ["Wix.com"],
+      "squarespace": ["Squarespace"],
+      "shopify": ["Shopify"],
+      "weebly": ["Weebly"],
+      "blogger": ["Blogger"],
+      "typo3": ["TYPO3"],
+      "concrete5": ["concrete5"],
+      "contentful": ["Contentful"],
+      "strapi": ["Strapi"]
+    }
+  },
+  "error_schemas": {
+    "description": "Error response JSON schemas",
+    "schemas": {
+      "spring": {
+        "required_keys": ["timestamp", "status", "error", "path"],
+        "optional_keys": ["message", "trace", "exception"]
+      },
+      "spring_webflux": {
+        "required_keys": ["timestamp", "path", "status", "error", "requestId"]
+      },
+      "dotnet": {
+        "required_keys": ["type", "title", "status"],
+        "optional_keys": ["traceId", "detail", "errors"]
+      },
+      "django_rest": {
+        "required_keys": ["detail"],
+        "optional_keys": ["status_code", "code"]
+      },
+      "laravel": {
+        "required_keys": ["message"],
+        "optional_keys": ["exception", "file", "line", "trace"]
+      },
+      "fastapi": {
+        "required_keys": ["detail"],
+        "optional_keys": ["type", "msg", "loc"]
+      },
+      "express": {
+        "required_keys": ["message"],
+        "optional_keys": ["stack", "error", "status"]
+      },
+      "rails": {
+        "required_keys": ["error"],
+        "optional_keys": ["status", "exception", "traces"]
+      },
+      "flask": {
+        "required_keys": ["message"],
+        "optional_keys": ["description", "error"]
+      }
+    }
+  },
+  "technology_stacks": {
+    "description": "Common technology stack combinations",
+    "stacks": {
+      "LAMP": ["Linux", "Apache", "MySQL", "PHP"],
+      "LEMP": ["Linux", "Nginx", "MySQL", "PHP"],
+      "MEAN": ["MongoDB", "Express", "Angular", "Node.js"],
+      "MERN": ["MongoDB", "Express", "React", "Node.js"],
+      "MEVN": ["MongoDB", "Express", "Vue", "Node.js"],
+      "Django": ["Python", "Django", "PostgreSQL", "Nginx/Gunicorn"],
+      "Rails": ["Ruby", "Rails", "PostgreSQL", "Puma/Passenger"],
+      "Spring": ["Java", "Spring", "MySQL/PostgreSQL", "Tomcat"],
+      "Laravel": ["PHP", "Laravel", "MySQL", "Nginx/Apache"],
+      "ASP.NET": [".NET", "ASP.NET", "SQL Server", "IIS"],
+      "JAMstack": ["JavaScript", "APIs", "Markup", "CDN"],
+      "Serverless": ["AWS Lambda/Cloud Functions", "API Gateway", "DynamoDB/Firestore"]
+    }
+  },
+  "version_detection": {
+    "description": "Version detection patterns",
+    "patterns": {
+      "jquery": {
+        "pattern": "jQuery v?([0-9.]+)",
+        "path": "/jquery.min.js"
+      },
+      "bootstrap": {
+        "pattern": "Bootstrap v?([0-9.]+)",
+        "path": "/bootstrap.min.js"
+      },
+      "react": {
+        "pattern": "React v?([0-9.]+)",
+        "path": "/react.production.min.js"
+      },
+      "angular": {
+        "pattern": "@angular/core@([0-9.]+)",
+        "path": "/vendor.js"
+      },
+      "vue": {
+        "pattern": "Vue.js v?([0-9.]+)",
+        "path": "/vue.min.js"
+      }
+    }
+  }
+}

@@ -1,0 +1,330 @@
+{
+  "metadata": {
+    "name": "JS Secrets Patterns",
+    "version": "1.0.0",
+    "description": "Secret detection patterns for REVUEX JS Secrets Miner GOLD",
+    "author": "REVUEX Team"
+  },
+  "api_key_patterns": {
+    "description": "API key detection patterns by provider",
+    "patterns": {
+      "google": {
+        "regex": "AIza[0-9A-Za-z\\-_]{35}",
+        "description": "Google API Key",
+        "severity": "high"
+      },
+      "google_oauth": {
+        "regex": "[0-9]+-[0-9A-Za-z_]{32}\\.apps\\.googleusercontent\\.com",
+        "description": "Google OAuth Client ID",
+        "severity": "medium"
+      },
+      "aws_access_key": {
+        "regex": "AKIA[0-9A-Z]{16}",
+        "description": "AWS Access Key ID",
+        "severity": "critical"
+      },
+      "aws_secret_key": {
+        "regex": "[0-9a-zA-Z/+]{40}",
+        "description": "AWS Secret Access Key (context required)",
+        "severity": "critical"
+      },
+      "stripe_secret": {
+        "regex": "sk_live_[0-9a-zA-Z]{24,}",
+        "description": "Stripe Secret Key",
+        "severity": "critical"
+      },
+      "stripe_publishable": {
+        "regex": "pk_live_[0-9a-zA-Z]{24,}",
+        "description": "Stripe Publishable Key",
+        "severity": "low"
+      },
+      "stripe_test_secret": {
+        "regex": "sk_test_[0-9a-zA-Z]{24,}",
+        "description": "Stripe Test Secret Key",
+        "severity": "medium"
+      },
+      "github_token": {
+        "regex": "ghp_[0-9a-zA-Z]{36}",
+        "description": "GitHub Personal Access Token",
+        "severity": "critical"
+      },
+      "github_oauth": {
+        "regex": "gho_[0-9a-zA-Z]{36}",
+        "description": "GitHub OAuth Token",
+        "severity": "critical"
+      },
+      "github_app": {
+        "regex": "ghu_[0-9a-zA-Z]{36}",
+        "description": "GitHub App Token",
+        "severity": "critical"
+      },
+      "github_refresh": {
+        "regex": "ghr_[0-9a-zA-Z]{36}",
+        "description": "GitHub Refresh Token",
+        "severity": "critical"
+      },
+      "gitlab_token": {
+        "regex": "glpat-[0-9a-zA-Z\\-_]{20,}",
+        "description": "GitLab Personal Access Token",
+        "severity": "critical"
+      },
+      "slack_token": {
+        "regex": "xox[baprs]-[0-9]{10,13}-[0-9]{10,13}[a-zA-Z0-9-]*",
+        "description": "Slack Token",
+        "severity": "critical"
+      },
+      "slack_webhook": {
+        "regex": "https://hooks\\.slack\\.com/services/T[a-zA-Z0-9_]{8,}/B[a-zA-Z0-9_]{8,}/[a-zA-Z0-9_]{24}",
+        "description": "Slack Webhook URL",
+        "severity": "high"
+      },
+      "twilio_sid": {
+        "regex": "AC[a-zA-Z0-9_\\-]{32}",
+        "description": "Twilio Account SID",
+        "severity": "high"
+      },
+      "twilio_auth": {
+        "regex": "SK[a-zA-Z0-9_\\-]{32}",
+        "description": "Twilio Auth Token",
+        "severity": "critical"
+      },
+      "sendgrid": {
+        "regex": "SG\\.[a-zA-Z0-9_\\-]{22}\\.[a-zA-Z0-9_\\-]{43}",
+        "description": "SendGrid API Key",
+        "severity": "critical"
+      },
+      "mailchimp": {
+        "regex": "[a-f0-9]{32}-us[0-9]{1,2}",
+        "description": "Mailchimp API Key",
+        "severity": "high"
+      },
+      "mailgun": {
+        "regex": "key-[0-9a-zA-Z]{32}",
+        "description": "Mailgun API Key",
+        "severity": "critical"
+      },
+      "openai": {
+        "regex": "sk-[a-zA-Z0-9]{48}",
+        "description": "OpenAI API Key",
+        "severity": "critical"
+      },
+      "firebase": {
+        "regex": "AAAA[A-Za-z0-9_-]{7}:[A-Za-z0-9_-]{140}",
+        "description": "Firebase Cloud Messaging Key",
+        "severity": "high"
+      },
+      "digitalocean": {
+        "regex": "dop_v1_[a-f0-9]{64}",
+        "description": "DigitalOcean Personal Access Token",
+        "severity": "critical"
+      },
+      "npm": {
+        "regex": "npm_[A-Za-z0-9]{36}",
+        "description": "NPM Access Token",
+        "severity": "critical"
+      },
+      "pypi": {
+        "regex": "pypi-AgEIcHlwaS5vcmc[A-Za-z0-9\\-_]{50,}",
+        "description": "PyPI API Token",
+        "severity": "critical"
+      },
+      "shopify_private": {
+        "regex": "shppa_[a-fA-F0-9]{32}",
+        "description": "Shopify Private App Token",
+        "severity": "critical"
+      },
+      "shopify_access": {
+        "regex": "shpat_[a-fA-F0-9]{32}",
+        "description": "Shopify Access Token",
+        "severity": "critical"
+      },
+      "facebook": {
+        "regex": "EAACEdEose0cBA[0-9A-Za-z]+",
+        "description": "Facebook Access Token",
+        "severity": "high"
+      },
+      "twitter_bearer": {
+        "regex": "AAAAAAAAAAAAAAAAAAAAAA[A-Za-z0-9%]+",
+        "description": "Twitter Bearer Token",
+        "severity": "high"
+      },
+      "heroku": {
+        "regex": "[h|H]eroku.*[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}",
+        "description": "Heroku API Key",
+        "severity": "critical"
+      },
+      "square_access": {
+        "regex": "sq0atp-[0-9A-Za-z\\-_]{22}",
+        "description": "Square Access Token",
+        "severity": "critical"
+      },
+      "square_oauth": {
+        "regex": "sq0csp-[0-9A-Za-z\\-_]{43}",
+        "description": "Square OAuth Secret",
+        "severity": "critical"
+      },
+      "paypal": {
+        "regex": "access_token\\$production\\$[0-9a-z]{16}\\$[0-9a-f]{32}",
+        "description": "PayPal Braintree Access Token",
+        "severity": "critical"
+      },
+      "picatic": {
+        "regex": "sk_live_[0-9a-z]{32}",
+        "description": "Picatic API Key",
+        "severity": "high"
+      },
+      "azure": {
+        "regex": "[a-zA-Z0-9+/]{86}==",
+        "description": "Azure Storage Account Key (base64)",
+        "severity": "critical"
+      },
+      "sentry": {
+        "regex": "https://[a-f0-9]{32}@[a-z0-9]+\\.ingest\\.sentry\\.io/[0-9]+",
+        "description": "Sentry DSN",
+        "severity": "medium"
+      },
+      "algolia": {
+        "regex": "[a-z0-9]{32}",
+        "description": "Algolia API Key (context required)",
+        "severity": "medium"
+      },
+      "braintree": {
+        "regex": "access_token\\$production\\$[0-9a-z]{16}\\$[0-9a-f]{32}",
+        "description": "Braintree Access Token",
+        "severity": "critical"
+      },
+      "pubnub_publish": {
+        "regex": "pub-c-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+        "description": "PubNub Publish Key",
+        "severity": "medium"
+      },
+      "pubnub_subscribe": {
+        "regex": "sub-c-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+        "description": "PubNub Subscribe Key",
+        "severity": "medium"
+      }
+    }
+  },
+  "generic_patterns": {
+    "description": "Generic secret patterns",
+    "patterns": {
+      "private_key": {
+        "regex": "-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY-----",
+        "description": "Private Key",
+        "severity": "critical"
+      },
+      "ssh_key": {
+        "regex": "-----BEGIN OPENSSH PRIVATE KEY-----",
+        "description": "SSH Private Key",
+        "severity": "critical"
+      },
+      "pgp_private": {
+        "regex": "-----BEGIN PGP PRIVATE KEY BLOCK-----",
+        "description": "PGP Private Key",
+        "severity": "critical"
+      },
+      "jwt": {
+        "regex": "eyJ[A-Za-z0-9_-]+\\.eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+",
+        "description": "JSON Web Token",
+        "severity": "high"
+      },
+      "basic_auth": {
+        "regex": "basic [a-zA-Z0-9=:_\\+\\/-]{5,100}",
+        "description": "Basic Auth Credentials",
+        "severity": "high"
+      },
+      "bearer_token": {
+        "regex": "bearer [a-zA-Z0-9_\\-\\.=:_\\+\\/]{5,100}",
+        "description": "Bearer Token",
+        "severity": "high"
+      },
+      "password_in_url": {
+        "regex": "[a-zA-Z]{3,10}://[^/\\s:@]{3,20}:[^/\\s:@]{3,20}@.{1,100}",
+        "description": "Password in URL",
+        "severity": "critical"
+      },
+      "connection_string": {
+        "regex": "mongodb(\\+srv)?://[^\\s\"']+",
+        "description": "MongoDB Connection String",
+        "severity": "critical"
+      },
+      "postgres_uri": {
+        "regex": "postgres(ql)?://[^\\s\"']+",
+        "description": "PostgreSQL Connection String",
+        "severity": "critical"
+      },
+      "mysql_uri": {
+        "regex": "mysql://[^\\s\"']+",
+        "description": "MySQL Connection String",
+        "severity": "critical"
+      },
+      "redis_uri": {
+        "regex": "redis://[^\\s\"']+",
+        "description": "Redis Connection String",
+        "severity": "critical"
+      }
+    }
+  },
+  "keyword_patterns": {
+    "description": "Keywords indicating secrets",
+    "keywords": [
+      "api_key", "apikey", "api-key", "apiKey", "API_KEY",
+      "access_token", "accesstoken", "access-token", "accessToken", "ACCESS_TOKEN",
+      "auth_token", "authtoken", "auth-token", "authToken", "AUTH_TOKEN",
+      "secret", "secret_key", "secretkey", "secret-key", "secretKey", "SECRET_KEY",
+      "password", "passwd", "pwd", "pass", "PASSWORD",
+      "private_key", "privatekey", "private-key", "privateKey", "PRIVATE_KEY",
+      "client_secret", "clientsecret", "client-secret", "clientSecret", "CLIENT_SECRET",
+      "encryption_key", "encryptionkey", "encryption-key", "encryptionKey",
+      "signing_key", "signingkey", "signing-key", "signingKey",
+      "bearer", "oauth", "jwt", "token", "credential", "credentials"
+    ]
+  },
+  "sink_patterns": {
+    "description": "Patterns indicating secret usage in sinks",
+    "patterns": [
+      "Authorization:",
+      "X-API-Key:",
+      "X-Auth-Token:",
+      "Bearer ",
+      "fetch\\(",
+      "axios\\.",
+      "XMLHttpRequest",
+      "$.ajax",
+      "$.post",
+      "$.get",
+      "WebSocket\\(",
+      "headers:",
+      "credentials:",
+      "authentication:",
+      "setRequestHeader"
+    ]
+  },
+  "false_positive_patterns": {
+    "description": "Patterns to exclude (likely false positives)",
+    "patterns": [
+      "example",
+      "sample",
+      "test",
+      "dummy",
+      "fake",
+      "placeholder",
+      "your-api-key",
+      "YOUR_API_KEY",
+      "xxx",
+      "XXX",
+      "TODO",
+      "FIXME",
+      "INSERT_",
+      "REPLACE_",
+      "CHANGE_ME",
+      "0000000000"
+    ]
+  },
+  "entropy_thresholds": {
+    "description": "Entropy thresholds for secret detection",
+    "high_entropy": 4.5,
+    "medium_entropy": 3.5,
+    "low_entropy": 2.5
+  }
+}

