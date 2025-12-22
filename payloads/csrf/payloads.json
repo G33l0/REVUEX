@@ -1,0 +1,168 @@
+{
+  "metadata": {
+    "name": "CSRF Payloads",
+    "version": "1.0.0",
+    "description": "CSRF testing patterns for REVUEX CSRF Scanner GOLD",
+    "author": "REVUEX Team"
+  },
+  "csrf_token_patterns": {
+    "description": "Common CSRF token field/header names",
+    "patterns": [
+      "csrf",
+      "csrf_token",
+      "csrftoken",
+      "xsrf",
+      "xsrf_token",
+      "_csrf",
+      "_token",
+      "token",
+      "authenticity_token",
+      "csrfmiddlewaretoken",
+      "__RequestVerificationToken",
+      "antiforgery",
+      "X-CSRF-Token",
+      "X-XSRF-Token",
+      "X-Requested-With"
+    ]
+  },
+  "state_changing_endpoints": {
+    "description": "Common state-changing endpoint patterns",
+    "endpoints": [
+      "/api/transfer",
+      "/api/password",
+      "/api/email",
+      "/api/settings",
+      "/api/profile",
+      "/api/delete",
+      "/api/create",
+      "/api/update",
+      "/account/password",
+      "/account/email",
+      "/account/settings",
+      "/user/update",
+      "/user/delete",
+      "/admin/users",
+      "/admin/settings"
+    ]
+  },
+  "bypass_techniques": {
+    "token_manipulation": {
+      "description": "Token manipulation techniques",
+      "techniques": [
+        {"name": "Remove token", "action": "Remove CSRF token entirely"},
+        {"name": "Empty token", "action": "Set token to empty string"},
+        {"name": "Random token", "action": "Use random invalid token"},
+        {"name": "Null token", "action": "Set token to null/None"},
+        {"name": "Token from other session", "action": "Use token from different user"}
+      ]
+    },
+    "origin_manipulation": {
+      "description": "Origin/Referer header techniques",
+      "techniques": [
+        {"name": "Remove Origin", "action": "Remove Origin header"},
+        {"name": "Remove Referer", "action": "Remove Referer header"},
+        {"name": "Null Origin", "action": "Set Origin: null"},
+        {"name": "Different Origin", "action": "Set Origin: https://evil.com"},
+        {"name": "Subdomain Origin", "action": "Set Origin: https://sub.target.com"}
+      ]
+    },
+    "method_confusion": {
+      "description": "HTTP method confusion techniques",
+      "techniques": [
+        {"name": "GET instead of POST", "action": "Use GET method"},
+        {"name": "HEAD instead of POST", "action": "Use HEAD method"},
+        {"name": "PUT instead of POST", "action": "Use PUT method"},
+        {"name": "X-HTTP-Method-Override", "action": "Use method override header"}
+      ]
+    },
+    "content_type_confusion": {
+      "description": "Content-Type manipulation",
+      "types": [
+        "application/json",
+        "text/plain",
+        "application/x-www-form-urlencoded",
+        "multipart/form-data"
+      ]
+    }
+  },
+  "samesite_values": {
+    "description": "SameSite cookie attribute values",
+    "values": {
+      "Strict": {
+        "protection": "Full",
+        "description": "Cookie not sent on any cross-site request"
+      },
+      "Lax": {
+        "protection": "Partial",
+        "description": "Cookie sent on top-level GET navigation"
+      },
+      "None": {
+        "protection": "None",
+        "description": "Cookie sent on all cross-site requests (requires Secure)"
+      }
+    }
+  },
+  "framework_tokens": {
+    "description": "Framework-specific CSRF implementations",
+    "django": {
+      "cookie": "csrftoken",
+      "header": "X-CSRFToken",
+      "form_field": "csrfmiddlewaretoken"
+    },
+    "rails": {
+      "meta_tag": "csrf-token",
+      "header": "X-CSRF-Token",
+      "form_field": "authenticity_token"
+    },
+    "laravel": {
+      "cookie": "XSRF-TOKEN",
+      "header": "X-XSRF-TOKEN",
+      "form_field": "_token"
+    },
+    "aspnet": {
+      "cookie": "__RequestVerificationToken",
+      "form_field": "__RequestVerificationToken"
+    },
+    "spring": {
+      "header": "X-CSRF-TOKEN",
+      "form_field": "_csrf"
+    },
+    "express": {
+      "cookie": "_csrf",
+      "header": "CSRF-Token",
+      "form_field": "_csrf"
+    }
+  },
+  "test_actions": {
+    "description": "High-value actions to test for CSRF",
+    "actions": [
+      {"name": "Password Change", "path": "/account/password", "impact": "Account Takeover"},
+      {"name": "Email Change", "path": "/account/email", "impact": "Account Takeover"},
+      {"name": "Fund Transfer", "path": "/api/transfer", "impact": "Financial Loss"},
+      {"name": "Admin Creation", "path": "/admin/users/create", "impact": "Privilege Escalation"},
+      {"name": "Settings Update", "path": "/api/settings", "impact": "Configuration Change"},
+      {"name": "Profile Update", "path": "/api/profile", "impact": "Data Modification"},
+      {"name": "Account Delete", "path": "/api/delete", "impact": "Data Loss"},
+      {"name": "API Key Generation", "path": "/api/keys/generate", "impact": "Access Compromise"}
+    ]
+  },
+  "response_indicators": {
+    "success": [
+      "success",
+      "updated",
+      "changed",
+      "saved",
+      "\"status\":\"ok\"",
+      "\"success\":true"
+    ],
+    "csrf_failure": [
+      "csrf",
+      "token",
+      "invalid",
+      "expired",
+      "missing",
+      "forbidden",
+      "403"
+    ]
+  }
+}
