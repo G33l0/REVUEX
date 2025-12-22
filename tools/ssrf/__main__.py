@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
 REVUEX SSRF Scanner - CLI Entry Point
-======================================
+=====================================
 
-Allows running the scanner as a module:
+Usage:
     python -m tools.ssrf -t https://example.com
 
 Author: REVUEX Team
