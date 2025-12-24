@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+"""
+Core Module Tests
+=================
+
+Tests for REVUEX core library components.
+"""
