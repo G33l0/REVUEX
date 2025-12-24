@@ -54,7 +54,7 @@ REVUEX is a comprehensive bug bounty automation framework designed by security r
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/revuex.git
+git clone https://github.com/G33l0/revuex.git
 cd revuex
 
 # Install dependencies
