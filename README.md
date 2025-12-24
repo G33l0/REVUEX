@@ -68,7 +68,7 @@ python revuex_suite.py --version
 
 ```bash
 # Clone and install in development mode
-git clone https://github.com/yourusername/revuex.git
+git clone https://github.com/G33l0/revuex.git
 cd revuex
 
 # Create virtual environment (recommended)
