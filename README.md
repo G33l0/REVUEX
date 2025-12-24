@@ -389,12 +389,12 @@ REVUEX includes multiple safety mechanisms:
 
 ### Tool Documentation
 
-Each tool has dedicated documentation in `documentation/tools/`:
+Each tool has dedicated documentation in its README.md. See `tools/`:
 
-- [SSRF Scanner](documentation/tools/ssrf.md)
-- [SQLi Scanner](documentation/tools/sqli.md)
-- [IDOR Tester](documentation/tools/idor.md)
-- [Full list...](documentation/tools/)
+- [SSRF Scanner](tools/ssrf.md)
+- [SQLi Scanner](tools/sqli.md)
+- [IDOR Tester](tools/idor.md)
+- [Full list...](tools/)
 
 ---
 
