@@ -186,6 +186,11 @@ class SafetyCheckResult:
     def is_blocked(self) -> bool:
         return self.result == ValidationResult.BLOCKED
     
+    @property
+    def reason(self) -> str:
+        """Alias for message - provides the reason for the result"""
+        return self.message
+    
     def __bool__(self) -> bool:
         return self.is_allowed
 
@@ -971,8 +976,15 @@ class SafetyManager:
     def __init__(
         self,
         scope: Optional[ScopeDefinition] = None,
-        safety_level: SafetyLevel = SafetyLevel.STANDARD
+        safety_level: SafetyLevel = None,
+        level: SafetyLevel = None  # Alias for safety_level
     ):
+        # Support both 'safety_level' and 'level' parameter names
+        if safety_level is None and level is None:
+            safety_level = SafetyLevel.STANDARD
+        elif safety_level is None:
+            safety_level = level
+        
         self.safety_level = safety_level
         
         # Initialize validators
