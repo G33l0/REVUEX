@@ -186,7 +186,7 @@ class SafetyCheckResult:
     def is_blocked(self) -> bool:
         return self.result == ValidationResult.BLOCKED
     
-    def _bool_(self) -> bool:
+    def __bool__(self) -> bool:
         return self.is_allowed
 
 
@@ -220,7 +220,7 @@ class ScopeDefinition:
     allow_private_ips: bool = False
     allow_cloud_metadata: bool = False
     
-    def _post_init_(self):
+    def __post_init__(self):
         """Normalize scope entries"""
         self.include_domains = [d.lower().strip() for d in self.include_domains]
         self.exclude_domains = [d.lower().strip() for d in self.exclude_domains]
@@ -250,7 +250,7 @@ class ScopeValidator:
             pass
     """
     
-    def _init_(
+    def __init__(
         self,
         scope: Optional[ScopeDefinition] = None,
         safety_level: SafetyLevel = SafetyLevel.STANDARD
@@ -569,7 +569,7 @@ class PayloadValidator:
     Blocks destructive or malicious payloads.
     """
     
-    def _init_(self, safety_level: SafetyLevel = SafetyLevel.STANDARD):
+    def __init__(self, safety_level: SafetyLevel = SafetyLevel.STANDARD):
         self.safety_level = safety_level
         self.logger = logging.getLogger("revuex.safety.payload")
         
@@ -721,7 +721,7 @@ class RequestValidator:
     Ensures requests follow responsible testing guidelines.
     """
     
-    def _init_(
+    def __init__(
         self,
         scope_validator: Optional[ScopeValidator] = None,
         payload_validator: Optional[PayloadValidator] = None,
@@ -852,7 +852,7 @@ class DNSRebindingProtector:
     to prevent DNS rebinding during SSRF testing.
     """
     
-    def _init_(self, scope_validator: Optional[ScopeValidator] = None):
+    def __init__(self, scope_validator: Optional[ScopeValidator] = None):
         self.scope_validator = scope_validator
         self.logger = logging.getLogger("revuex.safety.dns")
         self._resolution_cache: Dict[str, List[str]] = {}
@@ -968,7 +968,7 @@ class SafetyManager:
             pass
     """
     
-    def _init_(
+    def __init__(
         self,
         scope: Optional[ScopeDefinition] = None,
         safety_level: SafetyLevel = SafetyLevel.STANDARD
@@ -1130,7 +1130,7 @@ def create_default_scope(target: str, include_subdomains: bool = True) -> ScopeD
 # MODULE EXPORTS
 # =============================================================================
 
-_all_ = [
+__all__ = [
     # Main classes
     "SafetyManager",
     "ScopeValidator",
