@@ -26,7 +26,7 @@ Usage:
 
 Author: REVUEX Team
 License: MIT
-Website: https://revuex.io
+Website: https://github.com/G33l0/REVUEX/tree/main/documentation
 
 ⚠️  LEGAL DISCLAIMER:
 This tool is intended for authorized security testing only.
