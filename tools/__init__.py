@@ -38,7 +38,7 @@ from tools.subdomain_hunter import SubdomainHunter
 from tools.tech_fingerprinter import TechFingerprinter
 
 # Tool 3: JS Secrets Miner
-from tools.js_secrets import JSSecretsMiner
+from tools.js_secrets_miner import JSSecretsMiner
 
 # Tool 4: SSRF Scanner (v4.0 with SIE)
 from tools.ssrf import SSRFScanner
@@ -77,7 +77,7 @@ from tools.dependency import DependencyScanner
 from tools.graphql import GraphQLScanner
 
 # Tool 16: JWT Analyzer
-from tools.jwt_analyzer import JWTAnalyzer
+from tools.jwt import JWTAnalyzer
 
 # Tool 17: APK Analyzer
 from tools.apk_analyzer import APKAnalyzer
@@ -104,6 +104,7 @@ SCANNERS = {
     "tech_fingerprinter": TechFingerprinter,
     "fingerprint": TechFingerprinter,
     "js_secrets": JSSecretsMiner,
+    "js_secrets_miner": JSSecretsMiner,
     "secrets": JSSecretsMiner,
     
     # Injection Vulnerabilities
