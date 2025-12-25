@@ -1081,8 +1081,16 @@ def extract_base_domain(url: str) -> str:
     return f"{extracted.domain}.{extracted.suffix}"
 
 
-def create_default_scope(target: str) -> ScopeDefinition:
-    """Create a default scope from a target URL/domain"""
+def create_default_scope(target: str, include_subdomains: bool = True) -> ScopeDefinition:
+    """Create a default scope from a target URL/domain
+    
+    Args:
+        target: Target URL or domain
+        include_subdomains: Whether to include subdomains in scope (default: True)
+    
+    Returns:
+        ScopeDefinition with default safe settings
+    """
     # Extract base domain
     if target.startswith(("http://", "https://")):
         parsed = urlparse(target)
@@ -1098,10 +1106,16 @@ def create_default_scope(target: str) -> ScopeDefinition:
     extracted = tldextract.extract(domain)
     base = f"{extracted.domain}.{extracted.suffix}"
     
+    # Build include_domains based on subdomain setting
+    if include_subdomains:
+        include_domains = [base, f"*.{base}"]
+    else:
+        include_domains = [base]
+    
     return ScopeDefinition(
-        include_domains=[base, f"*.{base}"],
+        include_domains=include_domains,
         allowed_ports={80, 443, 8080, 8443},
-        allow_subdomains=True,
+        allow_subdomains=include_subdomains,
         allow_private_ips=False,
         allow_cloud_metadata=False
     )
