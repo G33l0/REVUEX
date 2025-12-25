@@ -21,11 +21,11 @@ Usage:
 
 Author: REVUEX Team (G33L0)
 License: MIT (Private Research Use)
-Version: 1.0.0
+Version: 4.0.1
 """
 
-__version__ = "1.0.0"
-__author__ = "REVUEX Team (G33L0)"
+__version__ = "4.0.1"
+__author__ = "REVUEX Team"
 
 # =============================================================================
 # SCANNER IMPORTS
