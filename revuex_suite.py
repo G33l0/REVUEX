@@ -188,7 +188,7 @@ TOOL_CATEGORIES = {
         "csrf": "Cross-Site Request Forgery",
     },
     "authentication": {
-        "jwt_scanner": "JWT Vulnerability Scanner",
+        "jwt": "JWT Vulnerability Scanner",
         "session": "Session Management Analyzer",
     },
     "business_logic": {
@@ -200,7 +200,7 @@ TOOL_CATEGORIES = {
         "file_upload": "File Upload Vulnerability Scanner",
         "graphql": "GraphQL Introspection and Security",
         "dependency": "Dependency Vulnerability Checker",
-        "apk": "Android APK Security Analyzer",
+        "apk_analyzer": "Android APK Security Analyzer",
     },
 }
 
@@ -485,23 +485,52 @@ class RevuexSuite:
                 self.logger.info(f"Skipping {tool_name} (missing required configuration)")
                 return None
             
-            # Create scanner with config
-            scanner = scanner_class(
-                target=self.config.target,
-                delay=self.config.delay,
-                timeout=self.config.timeout,
-                proxy=self.config.proxy if self.config.proxy else None,
-                verbose=self.config.verbose,
-                **extra_params
-            )
+            # Build base parameters - handle different parameter names
+            base_params = {
+                "delay": self.config.delay,
+                "timeout": self.config.timeout,
+                "verbose": self.config.verbose,
+            }
             
-            # Set cookies/headers if provided
-            if self.config.cookies:
-                scanner.session.headers["Cookie"] = self.config.cookies
-            if self.config.headers:
-                scanner.session.headers.update(self.config.headers)
-            if self.config.auth_token:
-                scanner.session.headers["Authorization"] = f"Bearer {self.config.auth_token}"
+            # Add proxy if set
+            if self.config.proxy:
+                base_params["proxy"] = self.config.proxy
+            
+            # Handle scanners with different primary parameter names
+            scanner_param_mapping = {
+                # tool_name: (param_name, value)
+                "subdomain_hunter": ("domain", self._extract_domain(self.config.target)),
+                "apk_analyzer": ("apk_path", extra_params.pop("apk_path", "")),
+                "jwt": ("token", extra_params.pop("jwt_token", "") or extra_params.pop("token", "")),
+            }
+            
+            if tool_name in scanner_param_mapping:
+                param_name, param_value = scanner_param_mapping[tool_name]
+                if not param_value and tool_name in ["apk_analyzer"]:
+                    self.logger.info(f"Skipping {tool_name} (missing required: {param_name})")
+                    return None
+                base_params[param_name] = param_value
+                # JWT analyzer also needs target
+                if tool_name == "jwt":
+                    base_params["target"] = self.config.target
+            else:
+                # Standard scanner with target parameter
+                base_params["target"] = self.config.target
+            
+            # Merge extra params
+            base_params.update(extra_params)
+            
+            # Create scanner
+            scanner = scanner_class(**base_params)
+            
+            # Set cookies/headers if provided and scanner has session
+            if hasattr(scanner, 'session'):
+                if self.config.cookies:
+                    scanner.session.headers["Cookie"] = self.config.cookies
+                if self.config.headers:
+                    scanner.session.headers.update(self.config.headers)
+                if self.config.auth_token:
+                    scanner.session.headers["Authorization"] = f"Bearer {self.config.auth_token}"
             
             self._scanners[tool_name] = scanner
             return scanner
@@ -516,6 +545,14 @@ class RevuexSuite:
         except Exception as e:
             self.logger.error(f"Failed to load scanner {tool_name}: {e}")
             return None
+    
+    def _extract_domain(self, url: str) -> str:
+        """Extract domain from URL"""
+        from urllib.parse import urlparse
+        if url.startswith(("http://", "https://")):
+            parsed = urlparse(url)
+            return parsed.netloc
+        return url
     
     def _get_scanner_params(self, tool_name: str, class_name: str) -> Optional[Dict[str, Any]]:
         """
@@ -543,7 +580,7 @@ class RevuexSuite:
             "jwt": {
                 "description": "JWT Scanner analyzes JWT tokens for vulnerabilities",
                 "params": [
-                    {"name": "jwt_token", "prompt": "Enter JWT token to analyze (or press Enter to scan for tokens)", "required": False},
+                    {"name": "token", "prompt": "Enter JWT token to analyze (or press Enter to scan for tokens)", "required": False},
                 ],
                 "skip_message": "JWT scanner will scan responses for tokens automatically"
             },
@@ -607,25 +644,43 @@ class RevuexSuite:
     
     def _tool_to_class_name(self, tool_name: str) -> str:
         """Convert tool name to class name"""
-        # ssrf -> SSRFScanner, js_secrets_miner -> JsSecretsMinerScanner
-        parts = tool_name.split("_")
-        class_name = "".join(p.capitalize() for p in parts) + "Scanner"
-        
-        # Handle special cases
-        special_cases = {
-            "SsrfScanner": "SSRFScanner",
-            "SqliScanner": "SQLiScanner",
-            "XssScanner": "XSSScanner",
-            "IdorScanner": "IDORScanner",
-            "CorsScanner": "CORSScanner",
-            "CsrfScanner": "CSRFScanner",
-            "XxeScanner": "XXEScanner",
-            "SstiScanner": "SSTIScanner",
-            "JwtScannerScanner": "JWTScanner",
-            "ApkScanner": "APKScanner",
+        # Direct mapping for all tools (tool_name -> ClassName)
+        direct_mapping = {
+            # Recon
+            "subdomain_hunter": "SubdomainHunter",
+            "tech_fingerprinter": "TechFingerprinter",
+            "js_secrets_miner": "JSSecretsMiner",
+            # Injection
+            "ssrf": "SSRFScanner",
+            "sqli": "SQLiScanner",
+            "xss": "XSSScanner",
+            "ssti": "SSTIScanner",
+            "xxe": "XXEScanner",
+            # Access Control
+            "idor": "IDORScanner",
+            "cors": "CORSScanner",
+            "csrf": "CSRFScanner",
+            # Authentication
+            "jwt": "JWTAnalyzer",
+            "session": "SessionScanner",
+            # Business Logic
+            "business_logic": "BusinessLogicScanner",
+            "race_condition": "RaceConditionScanner",
+            "price_manipulation": "PriceManipulationScanner",
+            # Other
+            "file_upload": "FileUploadScanner",
+            "graphql": "GraphQLScanner",
+            "dependency": "DependencyScanner",
+            "apk_analyzer": "APKAnalyzer",
         }
         
-        return special_cases.get(class_name, class_name)
+        if tool_name in direct_mapping:
+            return direct_mapping[tool_name]
+        
+        # Fallback: convert tool_name to CamelCase + Scanner
+        parts = tool_name.split("_")
+        class_name = "".join(p.capitalize() for p in parts) + "Scanner"
+        return class_name
     
     # =========================================================================
     # SCAN EXECUTION
