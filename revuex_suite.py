@@ -477,7 +477,7 @@ class RevuexSuite:
             module = __import__(module_path, fromlist=[scanner_class_name])
             scanner_class = getattr(module, scanner_class_name)
             
-            # Get scanner-specific parameters
+            # Get scanner-specific parameters from interactive prompts
             extra_params = self._get_scanner_params(tool_name, scanner_class_name)
             
             # If scanner requires params that weren't provided and user chose to skip
@@ -485,46 +485,18 @@ class RevuexSuite:
                 self.logger.info(f"Skipping {tool_name} (missing required configuration)")
                 return None
             
-            # Build base parameters - handle different parameter names
-            base_params = {
-                "delay": self.config.delay,
-                "timeout": self.config.timeout,
-                "verbose": self.config.verbose,
-            }
+            # Build parameters based on tool type
+            params = self._build_scanner_params(tool_name, extra_params)
             
-            # Add proxy if set
-            if self.config.proxy:
-                base_params["proxy"] = self.config.proxy
-            
-            # Handle scanners with different primary parameter names
-            scanner_param_mapping = {
-                # tool_name: (param_name, value)
-                "subdomain_hunter": ("domain", self._extract_domain(self.config.target)),
-                "apk_analyzer": ("apk_path", extra_params.pop("apk_path", "")),
-                "jwt": ("token", extra_params.pop("jwt_token", "") or extra_params.pop("token", "")),
-            }
-            
-            if tool_name in scanner_param_mapping:
-                param_name, param_value = scanner_param_mapping[tool_name]
-                if not param_value and tool_name in ["apk_analyzer"]:
-                    self.logger.info(f"Skipping {tool_name} (missing required: {param_name})")
-                    return None
-                base_params[param_name] = param_value
-                # JWT analyzer also needs target
-                if tool_name == "jwt":
-                    base_params["target"] = self.config.target
-            else:
-                # Standard scanner with target parameter
-                base_params["target"] = self.config.target
-            
-            # Merge extra params
-            base_params.update(extra_params)
+            if params is None:
+                self.logger.info(f"Skipping {tool_name} (cannot build parameters)")
+                return None
             
             # Create scanner
-            scanner = scanner_class(**base_params)
+            scanner = scanner_class(**params)
             
             # Set cookies/headers if provided and scanner has session
-            if hasattr(scanner, 'session'):
+            if hasattr(scanner, 'session') and scanner.session:
                 if self.config.cookies:
                     scanner.session.headers["Cookie"] = self.config.cookies
                 if self.config.headers:
@@ -545,6 +517,110 @@ class RevuexSuite:
         except Exception as e:
             self.logger.error(f"Failed to load scanner {tool_name}: {e}")
             return None
+    
+    def _build_scanner_params(self, tool_name: str, extra_params: Dict) -> Optional[Dict[str, Any]]:
+        """
+        Build scanner-specific parameters based on tool requirements.
+        
+        Args:
+            tool_name: Name of the tool
+            extra_params: Extra parameters from interactive prompts
+        
+        Returns:
+            Dict of parameters or None if cannot build
+        """
+        import requests
+        
+        # Common parameters most scanners accept
+        common_params = {}
+        
+        # Add kwargs that BaseScanner accepts
+        if self.config.delay:
+            common_params["delay"] = self.config.delay
+        if self.config.timeout:
+            common_params["timeout"] = self.config.timeout
+        if self.config.verbose:
+            common_params["verbose"] = self.config.verbose
+        
+        # Tools that work with just target
+        standard_tools = [
+            "cors", "dependency", "file_upload", "graphql", "idor",
+            "race_condition", "session", "sqli", "ssti", "tech_fingerprinter",
+            "xss", "xxe", "js_secrets_miner", "ssrf"
+        ]
+        
+        if tool_name in standard_tools:
+            params = {"target": self.config.target}
+            params.update(common_params)
+            params.update(extra_params)
+            return params
+        
+        # Special handling for each problematic tool
+        
+        # APK Analyzer - needs apk_path
+        if tool_name == "apk_analyzer":
+            apk_path = extra_params.get("apk_path", "")
+            if not apk_path:
+                self.logger.warning("APK Analyzer requires --apk-path parameter")
+                return None
+            return {"apk_path": apk_path, **extra_params}
+        
+        # Business Logic - needs baseline and probes
+        if tool_name == "business_logic":
+            # Auto-generate baseline and probes for basic testing
+            params = {
+                "target": self.config.target,
+                "baseline": {"url": self.config.target, "method": "GET"},
+                "probes": [{"name": "default", "url": self.config.target}],
+            }
+            params.update(common_params)
+            params.update(extra_params)
+            return params
+        
+        # CSRF - needs action_path
+        if tool_name == "csrf":
+            params = {
+                "target": self.config.target,
+                "action_path": extra_params.get("action_path", "/"),
+            }
+            params.update(common_params)
+            params.update(extra_params)
+            return params
+        
+        # JWT Analyzer - needs token
+        if tool_name == "jwt":
+            token = extra_params.get("token", "")
+            params = {
+                "target": self.config.target,
+                "token": token or "",  # Can be empty, will scan for tokens
+            }
+            params.update(common_params)
+            return params
+        
+        # Price Manipulation - needs baseline and probes
+        if tool_name == "price_manipulation":
+            params = {
+                "target": self.config.target,
+                "baseline": {"url": self.config.target, "method": "GET"},
+                "probes": [{"name": "price_test", "url": self.config.target}],
+            }
+            params.update(common_params)
+            params.update(extra_params)
+            return params
+        
+        # Subdomain Hunter - needs domain
+        if tool_name == "subdomain_hunter":
+            domain = self._extract_domain(self.config.target)
+            params = {"domain": domain}
+            params.update(common_params)
+            params.update(extra_params)
+            return params
+        
+        # Fallback - try with target
+        params = {"target": self.config.target}
+        params.update(common_params)
+        params.update(extra_params)
+        return params
     
     def _extract_domain(self, url: str) -> str:
         """Extract domain from URL"""
