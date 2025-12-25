@@ -270,8 +270,8 @@ class IDORScanner(BaseScanner):
     def __init__(
         self,
         target: str,
-        token_a: str,
-        token_b: str,
+        token_a: str = "",
+        token_b: str = "",
         object_id: str = "",
         blind_headers: Optional[Set[str]] = None,
         test_methods: bool = True,
@@ -286,8 +286,8 @@ class IDORScanner(BaseScanner):
         
         Args:
             target: Target URL with object ID
-            token_a: Authorization header for Account A (owner)
-            token_b: Authorization header for Account B (attacker)
+            token_a: Authorization header for Account A (owner) - optional
+            token_b: Authorization header for Account B (attacker) - optional
             object_id: Object ID owned by Account A (for blind IDOR)
             blind_headers: Headers to inject object ID into
             test_methods: Test multiple HTTP methods
@@ -295,11 +295,16 @@ class IDORScanner(BaseScanner):
             test_blind: Test blind/second-order IDOR
             similarity_threshold: JSON similarity threshold
             json_body: JSON body for POST/PUT requests
+            
+        Note:
+            If token_a and token_b are not provided, scanner will run in 
+            limited mode without cross-account testing.
         """
         super().__init__(target=target, **kwargs)
         
         self.token_a = token_a
         self.token_b = token_b
+        self.tokens_provided = bool(token_a and token_b)
         self.object_id = object_id or self._extract_object_id()
         self.blind_headers = blind_headers or set(BLIND_IDOR_HEADERS)
         self.test_methods = test_methods
@@ -312,9 +317,11 @@ class IDORScanner(BaseScanner):
         self.session_a = self._create_session()
         self.session_b = self._create_session()
         
-        # Set authorization headers
-        self.session_a.headers["Authorization"] = token_a
-        self.session_b.headers["Authorization"] = token_b
+        # Set authorization headers if provided
+        if token_a:
+            self.session_a.headers["Authorization"] = token_a
+        if token_b:
+            self.session_b.headers["Authorization"] = token_b
         
         # Prepare blind IDOR marker headers
         self.marker_headers = {h: self.object_id for h in self.blind_headers}
@@ -365,6 +372,13 @@ class IDORScanner(BaseScanner):
     def scan(self) -> None:
         """Execute the GOLD IDOR v1.1 scan."""
         self.logger.info(f"Starting IDOR GOLD v1.1 scan on {self.target}")
+        
+        # Check if tokens are provided for full IDOR testing
+        if not self.tokens_provided:
+            self.logger.warning("No authentication tokens provided. IDOR scanner requires two different account tokens for cross-account testing.")
+            self.logger.info("Skipping IDOR scan. Provide token_a and token_b for full testing.")
+            self.logger.info("Use: --token-a 'Bearer xxx' --token-b 'Bearer yyy'")
+            return
         
         # Detect IDs in URL
         self.detected_ids = find_ids_in_url(self.target)
@@ -840,9 +854,9 @@ class IDORScanner(BaseScanner):
             print(f"\n[Phase 2: Correlation as Account B]")
             print(f"  Object ID found in response: YES")
             print(f"\n[Evidence]")
-            print(f"  • Backend accepted object reference via headers")
-            print(f"  • Deferred authorization check missing")
-            print(f"  • Object reference trusted cross-account")
+            print(f"  â¢ Backend accepted object reference via headers")
+            print(f"  â¢ Deferred authorization check missing")
+            print(f"  â¢ Object reference trusted cross-account")
             print(f"\n{'='*60}")
             print("REPORT SUMMARY")
             print(f"{'='*60}")
@@ -934,10 +948,10 @@ def main() -> int:
     
     if not args.quiet:
         print(f"""
-╔═══════════════════════════════════════════════════════════╗
-║  REVUEX IDOR Scanner v{SCANNER_VERSION}-GOLD                        ║
-║  Dual-Account + Blind/Second-Order Testing               ║
-╚═══════════════════════════════════════════════════════════╝
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+â  REVUEX IDOR Scanner v{SCANNER_VERSION}-GOLD                        â
+â  Dual-Account + Blind/Second-Order Testing               â
+âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
         """)
     
     scanner = IDORScanner(
