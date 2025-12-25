@@ -531,10 +531,40 @@ class RevuexSuite:
         """
         import requests
         
-        # Common parameters most scanners accept
-        common_params = {}
+        # Get scanner class name for name/description
+        class_name = self._tool_to_class_name(tool_name)
         
-        # Add kwargs that BaseScanner accepts
+        # Tool descriptions
+        tool_descriptions = {
+            "subdomain_hunter": "Subdomain enumeration and discovery",
+            "tech_fingerprinter": "Technology stack detection",
+            "js_secrets_miner": "JavaScript secrets extraction",
+            "ssrf": "Server-Side Request Forgery scanner",
+            "sqli": "SQL Injection scanner",
+            "idor": "Insecure Direct Object Reference scanner",
+            "xss": "Cross-Site Scripting scanner",
+            "business_logic": "Business logic vulnerability scanner",
+            "file_upload": "File upload vulnerability scanner",
+            "xxe": "XML External Entity Injection scanner",
+            "session": "Session management analyzer",
+            "cors": "CORS misconfiguration scanner",
+            "csrf": "Cross-Site Request Forgery scanner",
+            "dependency": "Dependency vulnerability checker",
+            "graphql": "GraphQL security scanner",
+            "jwt": "JWT vulnerability analyzer",
+            "apk_analyzer": "Android APK security analyzer",
+            "race_condition": "Race condition tester",
+            "price_manipulation": "Price manipulation scanner",
+            "ssti": "Server-Side Template Injection scanner",
+        }
+        
+        # Common parameters that BaseScanner requires
+        common_params = {
+            "name": class_name,
+            "description": tool_descriptions.get(tool_name, f"{class_name} security scanner"),
+        }
+        
+        # Add optional kwargs that BaseScanner accepts
         if self.config.delay:
             common_params["delay"] = self.config.delay
         if self.config.timeout:
