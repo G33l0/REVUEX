@@ -53,6 +53,17 @@ python -m tools.idor -t "https://api.example.com/orders/123" \
     --token-a "Bearer owner_jwt_token" \
     --token-b "Bearer attacker_jwt_token"
 
+# Provide IDOR tokens directly via CLI
+python revuex_suite.py scan -t https://target.com \
+    --token-a "Bearer user1_token" \
+    --token-b "Bearer user2_token"
+
+# Disable all prompts (for CI/CD)
+python revuex_suite.py scan -t https://target.com --non-interactive
+
+# Or use --no-prompt
+python revuex_suite.py scan -t https://target.com --no-prompt
+
 # With blind/second-order IDOR testing
 python -m tools.idor -t "https://api.example.com/orders/123" \
     --token-a "Bearer AAA" \
