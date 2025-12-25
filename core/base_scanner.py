@@ -116,6 +116,8 @@ class ScanStatus(Enum):
     RUNNING = auto()
     COMPLETED = auto()
     FAILED = auto()
+    ERROR = auto()      # Alias for FAILED
+    PARTIAL = auto()    # Completed with some errors
     CANCELLED = auto()
     PAUSED = auto()
 
