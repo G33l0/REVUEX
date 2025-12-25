@@ -26,7 +26,7 @@ Usage:
 
 Author: REVUEX Team
 License: MIT
-Website: https://github.com/G33l0/REVUEX/tree/main/documentation
+Website: https://revuex.io
 
 ⚠️  LEGAL DISCLAIMER:
 This tool is intended for authorized security testing only.
@@ -263,6 +263,17 @@ class ScanConfig:
     resume_file: str = ""
     dry_run: bool = False
     
+    # Interactive mode
+    interactive: bool = True  # Prompt for missing scanner params
+    non_interactive: bool = False  # Skip all prompts (for CI/CD)
+    
+    # Scanner-specific parameters
+    scanner_params: Dict[str, Dict[str, Any]] = field(default_factory=dict)
+    
+    # IDOR-specific (convenience)
+    token_a: str = ""
+    token_b: str = ""
+    
     def __post_init__(self):
         # Normalize target
         if not self.target.startswith(("http://", "https://")):
@@ -287,6 +298,15 @@ class ScanConfig:
         # Remove excluded tools
         if self.exclude_tools:
             self.tools = [t for t in self.tools if t not in self.exclude_tools]
+        
+        # Store IDOR tokens in scanner_params if provided via CLI
+        if self.token_a or self.token_b:
+            if "idor" not in self.scanner_params:
+                self.scanner_params["idor"] = {}
+            if self.token_a:
+                self.scanner_params["idor"]["token_a"] = self.token_a
+            if self.token_b:
+                self.scanner_params["idor"]["token_b"] = self.token_b
     
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -357,7 +377,7 @@ class RevuexSuite:
         )
         
         # Initialize safety manager
-        self.safety = SafetyManager(safety_level=SafetyLevel.STANDARD)
+        self.safety = SafetyManager(level=SafetyLevel.STANDARD)
         if config.scope_file:
             self._load_scope(config.scope_file)
         else:
@@ -438,7 +458,7 @@ class RevuexSuite:
     
     def _get_scanner(self, tool_name: str) -> Optional[BaseScanner]:
         """
-        Get or create scanner instance.
+        Get or create scanner instance with interactive prompts for required params.
         
         Args:
             tool_name: Name of the tool
@@ -457,6 +477,14 @@ class RevuexSuite:
             module = __import__(module_path, fromlist=[scanner_class_name])
             scanner_class = getattr(module, scanner_class_name)
             
+            # Get scanner-specific parameters
+            extra_params = self._get_scanner_params(tool_name, scanner_class_name)
+            
+            # If scanner requires params that weren't provided and user chose to skip
+            if extra_params is None:
+                self.logger.info(f"Skipping {tool_name} (missing required configuration)")
+                return None
+            
             # Create scanner with config
             scanner = scanner_class(
                 target=self.config.target,
@@ -464,6 +492,7 @@ class RevuexSuite:
                 timeout=self.config.timeout,
                 proxy=self.config.proxy if self.config.proxy else None,
                 verbose=self.config.verbose,
+                **extra_params
             )
             
             # Set cookies/headers if provided
@@ -480,9 +509,101 @@ class RevuexSuite:
         except ImportError as e:
             self.logger.debug(f"Scanner {tool_name} not yet implemented: {e}")
             return None
+        except TypeError as e:
+            # Handle missing required arguments
+            self.logger.warning(f"Scanner {tool_name} requires additional configuration: {e}")
+            return None
         except Exception as e:
             self.logger.error(f"Failed to load scanner {tool_name}: {e}")
             return None
+    
+    def _get_scanner_params(self, tool_name: str, class_name: str) -> Optional[Dict[str, Any]]:
+        """
+        Get scanner-specific parameters, prompting interactively if needed.
+        
+        Args:
+            tool_name: Name of the tool
+            class_name: Scanner class name
+        
+        Returns:
+            Dict of extra parameters or None to skip scanner
+        """
+        params = {}
+        
+        # Define scanner-specific requirements
+        scanner_requirements = {
+            "idor": {
+                "description": "IDOR Scanner requires two different account tokens for cross-account testing",
+                "params": [
+                    {"name": "token_a", "prompt": "Enter Token A (Account A/Owner) [Bearer xxx]", "required": False},
+                    {"name": "token_b", "prompt": "Enter Token B (Account B/Attacker) [Bearer xxx]", "required": False},
+                ],
+                "skip_message": "IDOR scanner will be skipped (no cross-account testing)"
+            },
+            "jwt": {
+                "description": "JWT Scanner analyzes JWT tokens for vulnerabilities",
+                "params": [
+                    {"name": "jwt_token", "prompt": "Enter JWT token to analyze (or press Enter to scan for tokens)", "required": False},
+                ],
+                "skip_message": "JWT scanner will scan responses for tokens automatically"
+            },
+            "apk_analyzer": {
+                "description": "APK Analyzer requires an APK file path",
+                "params": [
+                    {"name": "apk_path", "prompt": "Enter path to APK file", "required": True},
+                ],
+                "skip_message": "APK Analyzer will be skipped (no APK file provided)"
+            },
+            "file_upload": {
+                "description": "File Upload Scanner tests file upload endpoints",
+                "params": [
+                    {"name": "upload_endpoint", "prompt": "Enter upload endpoint URL (or Enter to auto-detect)", "required": False},
+                ],
+                "skip_message": "File Upload scanner will auto-detect upload forms"
+            },
+        }
+        
+        # Check if this scanner has special requirements
+        if tool_name not in scanner_requirements:
+            return params  # No special requirements
+        
+        req = scanner_requirements[tool_name]
+        
+        # Check if we already have params from config
+        config_params = getattr(self.config, 'scanner_params', {}).get(tool_name, {})
+        if config_params:
+            return config_params
+        
+        # Interactive mode - prompt for params
+        if self.config.interactive and not self.config.non_interactive:
+            print(f"\n{'='*60}")
+            print(f"  {class_name} Configuration")
+            print(f"{'='*60}")
+            print(f"  {req['description']}")
+            print()
+            
+            has_required = True
+            for param in req["params"]:
+                try:
+                    value = input(f"  {param['prompt']}: ").strip()
+                    if value:
+                        params[param["name"]] = value
+                    elif param["required"]:
+                        has_required = False
+                        print(f"  [!] {param['name']} is required")
+                except (EOFError, KeyboardInterrupt):
+                    print("\n  [!] Input cancelled")
+                    return None
+            
+            if not has_required:
+                skip = input(f"\n  Skip this scanner? (Y/n): ").strip().lower()
+                if skip != 'n':
+                    print(f"  {req['skip_message']}")
+                    return None
+            
+            print()
+        
+        return params
     
     def _tool_to_class_name(self, tool_name: str) -> str:
         """Convert tool name to class name"""
@@ -976,6 +1097,32 @@ def create_parser() -> argparse.ArgumentParser:
         help="Bearer token for authentication"
     )
     
+    # IDOR-specific authentication
+    scan_parser.add_argument(
+        "--token-a",
+        help="IDOR: Token for Account A (owner account)"
+    )
+    
+    scan_parser.add_argument(
+        "--token-b",
+        help="IDOR: Token for Account B (attacker account)"
+    )
+    
+    # Interactive mode controls
+    scan_parser.add_argument(
+        "--interactive",
+        action="store_true",
+        default=True,
+        help="Enable interactive prompts for scanner configuration (default: enabled)"
+    )
+    
+    scan_parser.add_argument(
+        "--non-interactive", "--no-prompt",
+        action="store_true",
+        dest="non_interactive",
+        help="Disable all interactive prompts (for CI/CD pipelines)"
+    )
+    
     scan_parser.add_argument(
         "--scope",
         help="Scope definition file (YAML)"
@@ -1103,6 +1250,10 @@ def cmd_scan(args: argparse.Namespace) -> int:
         resume=bool(args.resume),
         resume_file=args.resume or "",
         dry_run=args.dry_run,
+        interactive=getattr(args, 'interactive', True),
+        non_interactive=getattr(args, 'non_interactive', False),
+        token_a=getattr(args, 'token_a', "") or "",
+        token_b=getattr(args, 'token_b', "") or "",
     )
     
     # Create and run suite
