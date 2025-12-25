@@ -357,7 +357,7 @@ class RevuexSuite:
         )
         
         # Initialize safety manager
-        self.safety = SafetyManager(level=SafetyLevel.STANDARD)
+        self.safety = SafetyManager(safety_level=SafetyLevel.STANDARD)
         if config.scope_file:
             self._load_scope(config.scope_file)
         else:
