@@ -45,7 +45,7 @@ REVUEX_BANNER = r"""
 ██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══╝   ██╔██╗ 
 ██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
 ╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
-        Bug Bounty Automation Framework v{version}
+        Bug Bounty Automation Framework Gold 4.1.0
 """
 
 # Default configuration values
