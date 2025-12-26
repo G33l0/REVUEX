@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX IDOR Framework v1.1-GOLD
+REVUEX IDOR Framework v3.1-GOLD
 ===============================
 Research-Grade IDOR Detection with Dual-Account
 + Blind / Second-Order Authorization Correlation
@@ -65,7 +65,7 @@ from core.utils import (
 # =============================================================================
 
 SCANNER_NAME = "IDOR Scanner GOLD"
-SCANNER_VERSION = "1.1.0"
+SCANNER_VERSION = "3.1.0"
 
 # HTTP methods to test for IDOR
 HTTP_METHODS = ["GET", "POST", "PUT", "DELETE", "PATCH"]
@@ -448,7 +448,7 @@ class IDORScanner(BaseScanner):
         Test for direct IDOR using dual-account comparison.
         """
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         # Account A (owner) accesses the resource
         self.logger.debug(f"[Account A] Fetching baseline as owner")
@@ -469,7 +469,7 @@ class IDORScanner(BaseScanner):
         self.logger.debug(f"[Account B] Attempting unauthorized access")
         
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         try:
             resp_b = self._make_request(self.session_b, method)
@@ -627,7 +627,7 @@ class IDORScanner(BaseScanner):
         
         # Step 1: Account A injects object ID via headers
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         try:
             # Send request with marker headers
@@ -648,7 +648,7 @@ class IDORScanner(BaseScanner):
         self.logger.info("Correlating deferred access as Account B...")
         
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         try:
             resp_b = self.session_b.get(self.target, timeout=self.timeout)
@@ -736,7 +736,7 @@ class IDORScanner(BaseScanner):
                 test_url = self.target.replace(id_value, adj_id)
                 
                 self.rate_limiter.acquire()
-                self.request_count += 1
+                self._request_count += 1
                 
                 try:
                     resp = self.session_b.get(test_url, timeout=self.timeout)
