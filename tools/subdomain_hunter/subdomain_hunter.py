@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX Subdomain-Hunter GOLD v1.0
+REVUEX Subdomain-Hunter GOLD v4.0
 =================================
 10/10 Research-Grade Subdomain Intelligence Engine for Bug Bounty Hunters.
 
@@ -69,14 +69,14 @@ SCANNER_NAME = "Subdomain Hunter GOLD"
 SCANNER_VERSION = "1.0.0"
 
 BANNER = r"""
-âââââââ âââââââââââ   ââââââ   ââââââââââââââ  âââ
-âââââââââââââââââââ   ââââââ   âââââââââââââââââââ
-ââââââââââââââ  âââ   ââââââ   âââââââââ   ââââââ 
-ââââââââââââââ  ââââ âââââââ   âââââââââ   ââââââ 
-âââ  âââââââââââ âââââââ âââââââââââââââââââââ âââ
-âââ  âââââââââââ  âââââ   âââââââ âââââââââââ  âââ
+██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
+██╔══██╗██╔════╝██║   ██║██║   ██║██╔════╝╚██╗██╔╝
+██████╔╝█████╗  ██║   ██║██║   ██║█████╗   ╚███╔╝ 
+██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══╝   ██╔██╗ 
+██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
+╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
 
-Subdomain-Hunter GOLD â Precision Recon Engine
+Subdomain-Hunter GOLD — Precision Recon Engine
 """
 
 # Confidence threshold for high-value findings
@@ -563,7 +563,12 @@ class SubdomainHunter(BaseScanner):
             min_sources: Minimum sources for correlation
         """
         # Use domain as target for BaseScanner
-        super().__init__(target=f"https://{domain}", **kwargs)
+        super().__init__(
+            name="SubdomainHunter",
+            description="Subdomain enumeration and discovery",
+            target=f"https://{domain}",
+            **kwargs
+        )
         
         self.domain = domain.lower().strip()
         self.confidence_threshold = confidence_threshold
