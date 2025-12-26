@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX File Upload GOLD v1.0
+REVUEX File Upload GOLD v4.0
 ============================
 Research-Grade File Upload Validation Scanner (10/10 GOLD)
 
@@ -47,7 +47,7 @@ BANNER = r"""
 ██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
 ╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
 
-File Upload GOLD — Policy Validation Scanner
+File Upload GOLD — Upload Policy Validation Scanner
 """
 
 CONFIDENCE_THRESHOLD = 80
@@ -172,7 +172,12 @@ class FileMutationEngine:
 
 class FileUploadScanner(BaseScanner):
     def __init__(self, target: str, upload_field: str = "file", allowed_extensions: Optional[List[str]] = None, test_dangerous: bool = True, custom_headers: Optional[Dict[str, str]] = None, confidence_threshold: int = CONFIDENCE_THRESHOLD, **kwargs):
-        super().__init__(target=target, **kwargs)
+        super().__init__(
+            name="FileUploadScanner",
+            description="File upload vulnerability scanner",
+            target=target,
+            **kwargs
+        )
         self.upload_field = upload_field
         self.allowed_extensions = allowed_extensions or COMMON_ALLOWED
         self.test_dangerous = test_dangerous
