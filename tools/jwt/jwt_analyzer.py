@@ -70,7 +70,7 @@ from core.utils import (
 # =============================================================================
 
 SCANNER_NAME = "JWT Analyzer GOLD"
-SCANNER_VERSION = "1.0.0"
+SCANNER_VERSION = "4.0.0"
 
 BANNER = r"""
 ██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
