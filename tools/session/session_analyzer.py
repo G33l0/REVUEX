@@ -265,7 +265,7 @@ class SessionScanner(BaseScanner):
     def _capture_state(self, name: str, method: str = "GET", path: Optional[str] = None, data: Optional[Dict] = None) -> None:
         """Capture session state."""
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         url = self.target if not path else self.target.rstrip("/") + path
         
