@@ -300,7 +300,12 @@ class IDORScanner(BaseScanner):
             If token_a and token_b are not provided, scanner will run in 
             limited mode without cross-account testing.
         """
-        super().__init__(target=target, **kwargs)
+        super().__init__(
+            name="IDORScanner",
+            description="Insecure Direct Object Reference scanner",
+            target=target,
+            **kwargs
+        )
         
         self.token_a = token_a
         self.token_b = token_b
@@ -854,9 +859,9 @@ class IDORScanner(BaseScanner):
             print(f"\n[Phase 2: Correlation as Account B]")
             print(f"  Object ID found in response: YES")
             print(f"\n[Evidence]")
-            print(f"  â¢ Backend accepted object reference via headers")
-            print(f"  â¢ Deferred authorization check missing")
-            print(f"  â¢ Object reference trusted cross-account")
+            print(f"  • Backend accepted object reference via headers")
+            print(f"  • Deferred authorization check missing")
+            print(f"  • Object reference trusted cross-account")
             print(f"\n{'='*60}")
             print("REPORT SUMMARY")
             print(f"{'='*60}")
@@ -948,10 +953,10 @@ def main() -> int:
     
     if not args.quiet:
         print(f"""
-âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-â  REVUEX IDOR Scanner v{SCANNER_VERSION}-GOLD                        â
-â  Dual-Account + Blind/Second-Order Testing               â
-âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+╔═══════════════════════════════════════════════════════════╗
+║  REVUEX IDOR Scanner v{SCANNER_VERSION}-GOLD                        ║
+║  Dual-Account + Blind/Second-Order Testing               ║
+╚═══════════════════════════════════════════════════════════╝
         """)
     
     scanner = IDORScanner(
