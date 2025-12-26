@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX JS-Secrets-Miner GOLD v1.0
+REVUEX JS-Secrets-Miner GOLD v4.0
 =================================
 10/10 Research-Grade JavaScript Secret & Trust-Leak Discovery Engine
 
@@ -68,7 +68,7 @@ from core.utils import (
 # =============================================================================
 
 SCANNER_NAME = "JS Secrets Miner GOLD"
-SCANNER_VERSION = "1.0.0"
+SCANNER_VERSION = "4.0.0"
 
 BANNER = r"""
 ██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
@@ -613,7 +613,7 @@ class JSSecretsMiner(BaseScanner):
         
         for js_url in js_files:
             self.rate_limiter.acquire()
-            self.request_count += 1
+            self._request_count += 1
             
             js_data = self.fetcher.get(js_url)
             if not js_data:
