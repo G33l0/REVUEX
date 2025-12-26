@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX CSRF GOLD v1.0
+REVUEX CSRF GOLD v4.0
 =====================
 Research-Grade CSRF Validation Scanner (10/10 GOLD)
 
@@ -61,7 +61,7 @@ BANNER = r"""
 ██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
 ╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
 
-CSRF Scanner GOLD â Cross-Site Request Forgery Detection
+CSRF Scanner GOLD — Cross-Site Request Forgery Detection
 """
 
 CONFIDENCE_THRESHOLD = 80
@@ -139,7 +139,12 @@ class CSRFScanner(BaseScanner):
             custom_headers: Custom HTTP headers
             confidence_threshold: Minimum confidence for findings
         """
-        super().__init__(target=target, **kwargs)
+        super().__init__(
+            name="CSRFScanner",
+            description="Cross-Site Request Forgery scanner",
+            target=target,
+            **kwargs
+        )
         
         self.action_path = action_path
         self.method = method.upper()
