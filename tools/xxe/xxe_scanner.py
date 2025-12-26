@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX XXE GOLD v1.0
+REVUEX XXE GOLD v4.0
 ====================
 Enterprise-Grade Non-Exploitational XXE Vulnerability Validator
 
@@ -179,7 +179,12 @@ class XXEScanner(BaseScanner):
             custom_xml: Custom XML payload to test
             confidence_threshold: Minimum confidence for findings
         """
-        super().__init__(target=target, **kwargs)
+        super().__init__(
+            name="XXEScanner",
+            description="XML External Entity Injection scanner",
+            target=target,
+            **kwargs
+        )
         
         self.custom_headers = custom_headers or {}
         self.custom_xml = custom_xml
