@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX CORS GOLD v1.0
+REVUEX CORS GOLD v4.0
 =====================
 High-confidence CORS Misconfiguration Scanner
 
@@ -150,7 +150,12 @@ class CORSScanner(BaseScanner):
             custom_headers: Custom HTTP headers
             confidence_threshold: Minimum confidence for findings
         """
-        super().__init__(target=target, **kwargs)
+        super().__init__(
+            name="CORSScanner",
+            description="CORS misconfiguration scanner",
+            target=target,
+            **kwargs
+        )
         
         self.custom_origins = custom_origins or []
         self.custom_headers = custom_headers or {}
