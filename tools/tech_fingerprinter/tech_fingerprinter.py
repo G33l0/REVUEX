@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX Tech-Fingerprinter GOLD v1.1
+REVUEX Tech-Fingerprinter GOLD v4.0
 ===================================
 High-Confidence Technology Stack Detection via Invariants & Correlation.
 
@@ -72,14 +72,14 @@ SCANNER_NAME = "Tech Fingerprinter GOLD"
 SCANNER_VERSION = "1.1.0"
 
 BANNER = r"""
-âââââââ âââââââââââ   ââââââ   ââââââââââââââ  âââ
-âââââââââââââââââââ   ââââââ   âââââââââââââââââââ
-ââââââââââââââ  âââ   ââââââ   âââââââââ   ââââââ 
-ââââââââââââââ  ââââ âââââââ   âââââââââ   ââââââ 
-âââ  âââââââââââ âââââââ âââââââââââââââââââââ âââ
-âââ  âââââââââââ  âââââ   âââââââ âââââââââââ  âââ
+██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
+██╔══██╗██╔════╝██║   ██║██║   ██║██╔════╝╚██╗██╔╝
+██████╔╝█████╗  ██║   ██║██║   ██║█████╗   ╚███╔╝ 
+██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══╝   ██╔██╗ 
+██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
+╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
 
-Tech-Fingerprinter GOLD â Passive Stack Intelligence
+Tech-Fingerprinter GOLD — Passive Stack Intelligence
 """
 
 # Confidence threshold for confirmed detection
@@ -268,7 +268,12 @@ class TechFingerprinter(BaseScanner):
             confidence_threshold: Minimum confidence for confirmed detection
             check_tls: Perform TLS analysis
         """
-        super().__init__(target=target, **kwargs)
+        super().__init__(
+            name="TechFingerprinter",
+            description="Technology stack fingerprinter",
+            target=target,
+            **kwargs
+        )
         
         self.confidence_threshold = confidence_threshold
         self.check_tls = check_tls
@@ -416,7 +421,7 @@ class TechFingerprinter(BaseScanner):
             for tech, hints in HEADER_HINTS.items():
                 if any(h in server for h in hints):
                     self._score(tech, 15, TechCategory.INFRASTRUCTURE, f"Server: {server}")
-                    print_success(f"Header invariant â {tech}")
+                    print_success(f"Header invariant → {tech}")
             
             # Check all header values
             for header, value in response.headers.items():
@@ -425,7 +430,7 @@ class TechFingerprinter(BaseScanner):
                     if any(h in value_lower for h in hints):
                         if self.confidence.get(tech, 0) < 15:  # Avoid double counting
                             self._score(tech, 10, TechCategory.INFRASTRUCTURE, f"{header}: {value}")
-                            print_success(f"Header invariant â {tech}")
+                            print_success(f"Header invariant → {tech}")
     
     def _analyze_cookies(self) -> None:
         """Analyze cookies for framework fingerprints."""
@@ -436,7 +441,7 @@ class TechFingerprinter(BaseScanner):
                 if any(cookie in cookie_names for cookie in names):
                     matched = [c for c in names if c in cookie_names]
                     self._score(tech, 25, TechCategory.FRAMEWORK, f"Cookie: {', '.join(matched)}")
-                    print_success(f"Cookie invariant â {tech}")
+                    print_success(f"Cookie invariant → {tech}")
     
     def _analyze_assets(self) -> None:
         """Analyze asset patterns in HTML."""
@@ -449,7 +454,7 @@ class TechFingerprinter(BaseScanner):
                 for pattern in patterns:
                     if re.search(pattern, text):
                         self._score(tech, 20, TechCategory.FRAMEWORK, f"Asset pattern: {pattern}")
-                        print_success(f"Asset invariant â {tech}")
+                        print_success(f"Asset invariant → {tech}")
                         break
     
     def _analyze_error_schemas(self) -> None:
@@ -468,7 +473,7 @@ class TechFingerprinter(BaseScanner):
                 for tech, schema in ERROR_SCHEMAS.items():
                     if schema.issubset(keys):
                         self._score(tech, 20, TechCategory.FRAMEWORK, f"Error schema: {schema}")
-                        print_success(f"Error schema invariant â {tech}")
+                        print_success(f"Error schema invariant → {tech}")
     
     def _analyze_meta_tags(self) -> None:
         """Analyze HTML meta tags for generators."""
@@ -495,7 +500,7 @@ class TechFingerprinter(BaseScanner):
                                 f"Generator: {generator}",
                                 version.group() if version else None
                             )
-                            print_success(f"Meta generator â {tech}")
+                            print_success(f"Meta generator → {tech}")
                             break
     
     def _analyze_tls(self) -> None:
@@ -516,7 +521,7 @@ class TechFingerprinter(BaseScanner):
                         proto, 10, TechCategory.INFRASTRUCTURE,
                         f"TLS: {proto}, Cipher: {cipher[0] if cipher else 'unknown'}"
                     )
-                    print_success(f"TLS invariant â {proto}")
+                    print_success(f"TLS invariant → {proto}")
                     
                     # Get certificate info
                     cert = ssock.getpeercert()
@@ -543,7 +548,7 @@ class TechFingerprinter(BaseScanner):
                             waf, 25, TechCategory.WAF_CDN,
                             f"WAF header: {sig_header}"
                         )
-                        print_success(f"WAF/CDN invariant â {waf}")
+                        print_success(f"WAF/CDN invariant → {waf}")
                         break
     
     def _analyze_powered_by(self) -> None:
@@ -564,7 +569,7 @@ class TechFingerprinter(BaseScanner):
                             f"X-Powered-By: {powered_by}",
                             version.group() if version else None
                         )
-                        print_success(f"X-Powered-By â {tech}")
+                        print_success(f"X-Powered-By → {tech}")
                         break
     
     # =========================================================================
