@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX APK Analyzer GOLD v1.0
+REVUEX APK Analyzer GOLD v4.0
 =============================
 Research-Grade Android APK Security Analyzer (10/10 GOLD)
 
@@ -52,7 +52,7 @@ from core.utils import print_success, print_error, print_warning, print_info
 # =============================================================================
 
 SCANNER_NAME = "APK Analyzer GOLD"
-SCANNER_VERSION = "1.0.0"
+SCANNER_VERSION = "4.0.0"
 
 BANNER = r"""
 ██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
