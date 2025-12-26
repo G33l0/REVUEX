@@ -638,7 +638,7 @@ class SubdomainHunter(BaseScanner):
         
         for subdomain, sources in correlated.items():
             self.rate_limiter.acquire()
-            self.request_count += 1
+            self._request_count += 1
             
             # Ownership classification
             own_info = self.ownership.classify(subdomain)
