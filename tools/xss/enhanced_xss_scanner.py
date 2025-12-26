@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX XSS Framework v4.0-GOLD
+REVUEX XSS Framework v3.5-GOLD
 ==============================
 Research-Grade XSS Detection Engine for Bug Bounty Professionals.
 
@@ -691,7 +691,7 @@ class XSSScanner(BaseScanner):
             Response object or None
         """
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         parsed = urlparse(self.target)
         params = parse_qs(parsed.query, keep_blank_values=True)
@@ -1021,14 +1021,14 @@ class XSSScanner(BaseScanner):
         try:
             # Send request with malicious headers
             self.session.get(self.target, headers=headers, timeout=self.timeout)
-            self.request_count += 1
+            self._request_count += 1
             
             # Wait for potential logging
             time.sleep(2)
             
             # Check if payload appears (may be in admin panel, logs view, etc.)
             check_response = self.session.get(self.target, timeout=self.timeout)
-            self.request_count += 1
+            self._request_count += 1
             
             if marker in check_response.text or payload in check_response.text:
                 finding = Finding(
@@ -1077,7 +1077,7 @@ class XSSScanner(BaseScanner):
         """
         try:
             response = self.session.get(self.target, timeout=self.timeout)
-            self.request_count += 1
+            self._request_count += 1
             
             csp = response.headers.get("Content-Security-Policy", "")
             csp_ro = response.headers.get("Content-Security-Policy-Report-Only", "")
