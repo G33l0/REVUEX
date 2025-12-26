@@ -262,7 +262,7 @@ class PriceManipulationScanner(BaseScanner):
     def _send_request(self, spec: Dict[str, Any]):
         """Send HTTP request based on spec."""
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         method = spec.get("method", "POST").upper()
         path = spec.get("path", "")
