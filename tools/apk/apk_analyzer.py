@@ -62,7 +62,7 @@ BANNER = r"""
 ██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
 ╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
 
-APK Analyzer GOLD - A Android Security Analysis
+APK Analyzer GOLD — Android Security Analysis
 """
 
 CONFIDENCE_THRESHOLD = 75
