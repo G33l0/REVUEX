@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX Tech-Fingerprinter GOLD v4.0
+REVUEX Tech-Fingerprinter GOLD v3.1
 ===================================
 High-Confidence Technology Stack Detection via Invariants & Correlation.
 
@@ -69,7 +69,7 @@ from core.utils import (
 # =============================================================================
 
 SCANNER_NAME = "Tech Fingerprinter GOLD"
-SCANNER_VERSION = "1.1.0"
+SCANNER_VERSION = "3.1.0"
 
 BANNER = r"""
 ██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
@@ -372,7 +372,7 @@ class TechFingerprinter(BaseScanner):
         
         for url in urls:
             self.rate_limiter.acquire()
-            self.request_count += 1
+            self._request_count += 1
             
             try:
                 response = self.session.get(url, timeout=self.timeout, allow_redirects=True)
