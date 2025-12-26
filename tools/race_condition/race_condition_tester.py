@@ -214,7 +214,7 @@ class RaceConditionScanner(BaseScanner):
     def _capture_baseline(self) -> None:
         """Capture baseline request."""
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         try:
             start_time = time.time()
