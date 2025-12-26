@@ -50,7 +50,7 @@ from core.utils import print_success, print_error, print_warning, print_info
 # =============================================================================
 
 SCANNER_NAME = "GraphQL Scanner GOLD"
-SCANNER_VERSION = "1.0.0"
+SCANNER_VERSION = "4.0.0"
 
 BANNER = r"""
 ██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
@@ -279,7 +279,7 @@ class GraphQLScanner(BaseScanner):
     def _capture_baseline(self) -> None:
         """Capture baseline GraphQL response."""
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         try:
             response = self.session.post(
@@ -301,7 +301,7 @@ class GraphQLScanner(BaseScanner):
     def _send_query(self, payload: Any, headers: Optional[Dict] = None, method: str = "POST") -> Optional[Any]:
         """Send GraphQL query."""
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         hdrs = {**self.custom_headers}
         if headers:
