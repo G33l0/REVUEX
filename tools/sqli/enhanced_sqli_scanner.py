@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX SQLi Framework v3.5-GOLD
+REVUEX SQLi Framework v4.0-GOLD
 ===============================
 A 10/10 Private Research Grade Scanner for Bug Bounty Professionals.
 
@@ -289,7 +289,12 @@ class SQLiScanner(BaseScanner):
             statistical_samples: Number of samples for time-based stats
             **kwargs: Additional BaseScanner arguments
         """
-        super().__init__(target=target, **kwargs)
+        super().__init__(
+            name="SQLiScanner",
+            description="SQL Injection scanner",
+            target=target,
+            **kwargs
+        )
         
         self.time_delay = time_delay
         self.json_body = json_body or {}
