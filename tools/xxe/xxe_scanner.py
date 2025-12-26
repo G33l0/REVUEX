@@ -221,7 +221,7 @@ class XXEScanner(BaseScanner):
         
         try:
             self.rate_limiter.acquire()
-            self.request_count += 1
+            self._request_count += 1
             
             response = self.session.post(
                 self.target,
