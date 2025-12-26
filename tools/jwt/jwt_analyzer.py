@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX JWT-GOLD Scanner v1.0
+REVUEX JWT-GOLD Scanner v4.0
 ============================
 High-Confidence JWT Vulnerability Detection without Exploitation.
 
@@ -73,14 +73,14 @@ SCANNER_NAME = "JWT Analyzer GOLD"
 SCANNER_VERSION = "1.0.0"
 
 BANNER = r"""
-âââââââ âââââââââââ   ââââââ   ââââââââââââââ  âââ
-âââââââââââââââââââ   ââââââ   âââââââââââââââââââ
-ââââââââââââââ  âââ   ââââââ   âââââââââ   ââââââ 
-ââââââââââââââ  ââââ âââââââ   âââââââââ   ââââââ 
-âââ  âââââââââââ âââââââ âââââââââââââââââââââ âââ
-âââ  âââââââââââ  âââââ   âââââââ âââââââââââ  âââ
+██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
+██╔══██╗██╔════╝██║   ██║██║   ██║██╔════╝╚██╗██╔╝
+██████╔╝█████╗  ██║   ██║██║   ██║█████╗   ╚███╔╝ 
+██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══╝   ██╔██╗ 
+██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
+╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
 
-JWT-GOLD â Zero-Exploitation Token Trust Analysis
+JWT-GOLD — Zero-Exploitation Token Trust Analysis
 """
 
 # Confidence threshold for high-value findings
@@ -204,7 +204,12 @@ class JWTAnalyzer(BaseScanner):
             confidence_threshold: Minimum confidence for findings
             check_jwks: Check JWKS endpoints
         """
-        super().__init__(target=target, **kwargs)
+        super().__init__(
+            name="JWTAnalyzer",
+            description="JWT vulnerability analyzer",
+            target=target,
+            **kwargs
+        )
         
         self.token = token
         self.confidence_threshold = confidence_threshold
