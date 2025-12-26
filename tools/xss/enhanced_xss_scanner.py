@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX XSS Framework v3.5-GOLD
+REVUEX XSS Framework v4.0-GOLD
 ==============================
 Research-Grade XSS Detection Engine for Bug Bounty Professionals.
 
@@ -533,7 +533,12 @@ class XSSScanner(BaseScanner):
             callback_url: Callback URL for blind XSS
             **kwargs: Additional BaseScanner arguments
         """
-        super().__init__(target=target, **kwargs)
+        super().__init__(
+            name="XSSScanner",
+            description="Cross-Site Scripting scanner",
+            target=target,
+            **kwargs
+        )
         
         self.json_body = json_body or {}
         self.test_methods = test_methods
