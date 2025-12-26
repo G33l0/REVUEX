@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX Price-Manipulation GOLD v2.0
+REVUEX Price-Manipulation GOLD v4.0
 ===================================
 Unified detection of pricing, coupon, subscription, and trial abuse
 via server-side trust invariant violations.
@@ -72,14 +72,14 @@ SCANNER_NAME = "Price Manipulation Scanner GOLD"
 SCANNER_VERSION = "2.0.0"
 
 BANNER = r"""
-âââââââ âââââââââââ   ââââââ   ââââââââââââââ  âââ
-âââââââââââââââââââ   ââââââ   âââââââââââââââââââ
-ââââââââââââââ  âââ   ââââââ   âââââââââ   ââââââ 
-ââââââââââââââ  ââââ âââââââ   âââââââââ   ââââââ 
-âââ  âââââââââââ âââââââ âââââââââââââââââââââ âââ
-âââ  âââââââââââ  âââââ   âââââââ âââââââââââ  âââ
+██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
+██╔══██╗██╔════╝██║   ██║██║   ██║██╔════╝╚██╗██╔╝
+██████╔╝█████╗  ██║   ██║██║   ██║█████╗   ╚███╔╝ 
+██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══╝   ██╔██╗ 
+██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
+╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
 
-Price-Manipulation GOLD â Monetary Trust Invariant Detection
+Price-Manipulation GOLD — Monetary Trust Invariant Detection
 """
 
 # Confidence threshold for high-value findings
@@ -174,7 +174,12 @@ class PriceManipulationScanner(BaseScanner):
             similarity_threshold: Threshold for response similarity
             confidence_threshold: Minimum confidence for findings
         """
-        super().__init__(target=target, **kwargs)
+        super().__init__(
+            name="PriceManipulationScanner",
+            description="Price manipulation scanner",
+            target=target,
+            **kwargs
+        )
         
         self.baseline = baseline
         self.probes = probes
