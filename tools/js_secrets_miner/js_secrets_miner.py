@@ -71,14 +71,14 @@ SCANNER_NAME = "JS Secrets Miner GOLD"
 SCANNER_VERSION = "1.0.0"
 
 BANNER = r"""
-âââââââ âââââââââââ   ââââââ   ââââââââââââââ  âââ
-âââââââââââââââââââ   ââââââ   âââââââââââââââââââ
-ââââââââââââââ  âââ   ââââââ   âââââââââ   ââââââ 
-ââââââââââââââ  ââââ âââââââ   âââââââââ   ââââââ 
-âââ  âââââââââââ âââââââ âââââââââââââââââââââ âââ
-âââ  âââââââââââ  âââââ   âââââââ âââââââââââ  âââ
+██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
+██╔══██╗██╔════╝██║   ██║██║   ██║██╔════╝╚██╗██╔╝
+██████╔╝█████╗  ██║   ██║██║   ██║█████╗   ╚███╔╝ 
+██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══╝   ██╔██╗ 
+██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
+╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
 
-JS-Secrets-Miner GOLD â Client-Side Trust Leak Intelligence
+JS-Secrets-Miner GOLD — Client-Side Trust Leak Intelligence
 """
 
 # Confidence threshold for high-value findings
@@ -562,7 +562,12 @@ class JSSecretsMiner(BaseScanner):
             confidence_threshold: Minimum confidence for findings
             include_low_confidence: Include low confidence results
         """
-        super().__init__(target=target, **kwargs)
+        super().__init__(
+            name="JSSecretsMiner",
+            description="JavaScript secrets and API key extraction",
+            target=target,
+            **kwargs
+        )
         
         self.confidence_threshold = confidence_threshold
         self.include_low_confidence = include_low_confidence
