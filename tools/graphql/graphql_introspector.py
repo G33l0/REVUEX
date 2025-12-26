@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX GraphQL GOLD v1.0
+REVUEX GraphQL GOLD v4.0
 ========================
 Research-Grade GraphQL Security Validation Scanner (10/10 GOLD)
 
@@ -192,7 +192,12 @@ class GraphQLScanner(BaseScanner):
             custom_headers: Custom HTTP headers
             confidence_threshold: Minimum confidence for findings
         """
-        super().__init__(target=target, **kwargs)
+        super().__init__(
+            name="GraphQLScanner",
+            description="GraphQL security scanner",
+            target=target,
+            **kwargs
+        )
         
         self.custom_headers = custom_headers or {}
         self.confidence_threshold = confidence_threshold
