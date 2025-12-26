@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX Race Condition GOLD v1.0
+REVUEX Race Condition GOLD v4.0
 ===============================
 Research-Grade Race Condition & Concurrency Scanner (10/10 GOLD)
 
@@ -135,7 +135,12 @@ class RaceConditionScanner(BaseScanner):
             concurrency_window: Time between thread starts
             confidence_threshold: Minimum confidence for findings
         """
-        super().__init__(target=target, **kwargs)
+        super().__init__(
+            name="RaceConditionScanner",
+            description="Race condition tester",
+            target=target,
+            **kwargs
+        )
         
         self.method = method.upper()
         self.request_data = request_data
