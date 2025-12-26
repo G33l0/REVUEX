@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX Dependency GOLD v1.0
+REVUEX Dependency GOLD v4.0
 ===========================
 High-confidence Dependency and Component Risk Analyzer
 
@@ -248,7 +248,12 @@ class DependencyScanner(BaseScanner):
             deep_scan: Fetch and analyze script contents
             confidence_threshold: Minimum confidence for findings
         """
-        super().__init__(target=target, **kwargs)
+        super().__init__(
+            name="DependencyScanner",
+            description="Dependency vulnerability checker",
+            target=target,
+            **kwargs
+        )
         
         self.custom_headers = custom_headers or {}
         self.deep_scan = deep_scan
