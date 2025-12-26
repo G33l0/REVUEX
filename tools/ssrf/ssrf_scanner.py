@@ -385,7 +385,12 @@ class SSRFScanner(BaseScanner):
             skip_discovery: Skip SIE discovery
             confidence_threshold: Minimum confidence for findings
         """
-        super().__init__(target=target, **kwargs)
+        super().__init__(
+            name="SSRFScanner",
+            description="Server-Side Request Forgery scanner",
+            target=target,
+            **kwargs
+        )
         
         self.custom_endpoints = custom_endpoints or []
         self.custom_params = custom_params or []
