@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX Business-Logic GOLD v1.0
+REVUEX Business-Logic GOLD v4.0
 ===============================
 High-Confidence Business Logic Vulnerability Detection without Exploitation.
 
@@ -80,7 +80,7 @@ BANNER = r"""
 ██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
 ╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
 
-Business-Logic GOLD â Invariant-Based Flaw Detection
+Business-Logic GOLD — Invariant-Based Flaw Detection
 """
 
 # Confidence threshold for high-value findings
@@ -190,7 +190,12 @@ class BusinessLogicScanner(BaseScanner):
             similarity_threshold: Threshold for response similarity
             confidence_threshold: Minimum confidence for findings
         """
-        super().__init__(target=target, **kwargs)
+        super().__init__(
+            name="BusinessLogicScanner",
+            description="Business logic vulnerability scanner",
+            target=target,
+            **kwargs
+        )
         
         self.baseline = baseline
         self.probes = probes
