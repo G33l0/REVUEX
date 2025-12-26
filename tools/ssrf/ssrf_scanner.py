@@ -516,7 +516,7 @@ class SSRFScanner(BaseScanner):
     def _test_ssrf(self, endpoint: DiscoveredEndpoint, param: str, payload: str, test_type: str) -> None:
         """Test single SSRF payload."""
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         confidence = 30  # Base: SIE discovery
         evidence = {
