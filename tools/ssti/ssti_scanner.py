@@ -411,7 +411,7 @@ class SSTIScanner(BaseScanner):
         """Fetch baseline response."""
         try:
             self.rate_limiter.acquire()
-            self.request_count += 1
+            self._request_count += 1
             
             response = self.session.get(
                 self.target,
@@ -524,7 +524,7 @@ class SSTIScanner(BaseScanner):
     def _test_single_probe(self, param: str, probe: str, expected: str, engines: List[str]) -> None:
         """Test a single math probe."""
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         try:
             # Build test URL
