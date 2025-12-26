@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX SSTI GOLD v1.0
+REVUEX SSTI GOLD v4.0
 =====================
 High-confidence Server-Side Template Injection Capability Detector
 
@@ -333,7 +333,12 @@ class SSTIScanner(BaseScanner):
             test_params: Test URL parameters with probes
             confidence_threshold: Minimum confidence for findings
         """
-        super().__init__(target=target, **kwargs)
+        super().__init__(
+            name="SSTIScanner",
+            description="Server-Side Template Injection scanner",
+            target=target,
+            **kwargs
+        )
         
         self.custom_params = custom_params or []
         self.custom_headers = custom_headers or {}
