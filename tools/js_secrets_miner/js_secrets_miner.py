@@ -881,7 +881,8 @@ def main() -> int:
         print("SCAN COMPLETE")
         print(f"{'='*60}")
         print(f"Target: {args.target}")
-        print(f"Duration: {result.duration_seconds:.2f}s")
+        if result and hasattr(result, "duration_seconds") and result.duration_seconds:
+            print(f"Duration: {result.duration_seconds:.2f}s")
         print(f"JS Files Scanned: {len(miner.js_files_scanned)}")
         print(f"Secrets Found: {len(miner.secret_results)}")
         print(f"High-Confidence: {len(result.findings)}")
@@ -901,8 +902,8 @@ def main() -> int:
             "scanner": "REVUEX JS Secrets Miner GOLD",
             "version": SCANNER_VERSION,
             "target": args.target,
-            "scan_id": result.scan_id,
-            "duration": result.duration_seconds,
+            "scan_id": getattr(result, "scan_id", "unknown") if result else "unknown",
+            "duration": getattr(result, "duration_seconds", 0) if result else 0,
             "js_files_scanned": list(miner.js_files_scanned),
             "results": [
                 {
@@ -925,7 +926,7 @@ def main() -> int:
                     "severity": f.severity.value,
                     "variable": f.parameter,
                 }
-                for f in result.findings
+                for f in getattr(result, "findings", [])
             ]
         }
         
