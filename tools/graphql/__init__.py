@@ -15,17 +15,40 @@ Usage:
     result = scanner.run()
 
 CLI:
-    python -m tools.graphql -e https://example.com/graphql
+    python -m tools.graphql -t https://example.com/graphql
 
 Author: REVUEX Team
 License: MIT
 """
 
+import sys
+import importlib.util
+from pathlib import Path
+
+# Get the directory containing this __init__.py
+_THIS_DIR = Path(__file__).parent.absolute()
+_SCANNER_FILE = _THIS_DIR / "graphql_scanner.py"
+
+# Load the module directly from file path
+def _load_scanner_module():
+    spec = importlib.util.spec_from_file_location("graphql_scanner", _SCANNER_FILE)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules["graphql_scanner"] = module
+    spec.loader.exec_module(module)
+    return module
+
 try:
+    # Try relative import first
     from .graphql_scanner import GraphQLScanner, main
 except ImportError:
-    # Fallback for module execution
-    from graphql_scanner import GraphQLScanner, main
+    try:
+        # Try direct import
+        from graphql_scanner import GraphQLScanner, main
+    except ImportError:
+        # Load directly from file path as last resort
+        _module = _load_scanner_module()
+        GraphQLScanner = _module.GraphQLScanner
+        main = _module.main
 
 __all__ = ["GraphQLScanner", "main"]
 __version__ = "1.0.0"
