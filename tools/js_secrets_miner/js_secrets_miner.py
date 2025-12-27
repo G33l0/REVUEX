@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX JS-Secrets-Miner GOLD v4.0
+REVUEX JS-Secrets-Miner GOLD v1.0
 =================================
 10/10 Research-Grade JavaScript Secret & Trust-Leak Discovery Engine
 
@@ -68,17 +68,17 @@ from core.utils import (
 # =============================================================================
 
 SCANNER_NAME = "JS Secrets Miner GOLD"
-SCANNER_VERSION = "4.0.0"
+SCANNER_VERSION = "2.1.0"
 
 BANNER = r"""
-██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
-██╔══██╗██╔════╝██║   ██║██║   ██║██╔════╝╚██╗██╔╝
-██████╔╝█████╗  ██║   ██║██║   ██║█████╗   ╚███╔╝ 
-██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══╝   ██╔██╗ 
-██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
-╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
+âââââââ âââââââââââ   ââââââ   ââââââââââââââ  âââ
+âââââââââââââââââââ   ââââââ   âââââââââââââââââââ
+ââââââââââââââ  âââ   ââââââ   âââââââââ   ââââââ 
+ââââââââââââââ  ââââ âââââââ   âââââââââ   ââââââ 
+âââ  âââââââââââ âââââââ âââââââââââââââââââââ âââ
+âââ  âââââââââââ  âââââ   âââââââ âââââââââââ  âââ
 
-JS-Secrets-Miner GOLD v4.0 - A B Client-Side Trust Leak Intelligence
+JS-Secrets-Miner GOLD v2.1 â Client-Side Trust Leak Intelligence
 [Enhanced False Positive Filtering]
 """
 
@@ -248,6 +248,27 @@ FALSE_POSITIVE_VALUE_PATTERNS = [
     r"^\d{1,2}px$|^\d{1,3}%$|^\d{1,2}rem$",  # CSS units
 ]
 
+# Known fetch/axios/HTTP configuration values - NOT secrets
+KNOWN_CONFIG_VALUES = [
+    # Fetch API credentials option
+    "same-origin", "include", "omit",
+    # Fetch API mode option
+    "cors", "no-cors", "same-origin", "navigate",
+    # Fetch API cache option
+    "default", "no-store", "reload", "no-cache", "force-cache", "only-if-cached",
+    # Fetch API redirect option
+    "follow", "error", "manual",
+    # HTTP methods
+    "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS",
+    # Content types
+    "application/json", "application/x-www-form-urlencoded", "multipart/form-data",
+    "text/plain", "text/html", "text/xml",
+    # Common config values
+    "true", "false", "null", "undefined", "none", "auto",
+    # Response types
+    "json", "text", "blob", "arraybuffer", "document",
+]
+
 # Context indicators - if variable appears in these contexts, likely NOT a secret
 FALSE_POSITIVE_CONTEXT_PATTERNS = [
     r"label\s*:\s*['\"]",
@@ -336,6 +357,10 @@ class FalsePositiveFilter:
         for pattern in self.value_patterns:
             if pattern.match(value):
                 return True, f"Value matches non-secret pattern"
+        
+        # Check for known configuration values (fetch, axios, HTTP)
+        if value.lower() in [v.lower() for v in KNOWN_CONFIG_VALUES]:
+            return True, f"Value is a known configuration option: {value}"
         
         # Check context patterns
         if context:
@@ -924,8 +949,19 @@ class JSSecretsMiner(BaseScanner):
             assignments = self.parser.extract_assignments(js_data["body"])
             
             for assign in assignments:
-                # Analyze with heuristics
-                heuristics = self.heuristic.analyze(assign["var"], assign["value"])
+                # Get surrounding context for better analysis
+                value_idx = js_data["body"].find(assign["value"])
+                context_start = max(0, value_idx - 200)
+                context_end = min(len(js_data["body"]), value_idx + len(assign["value"]) + 200)
+                surrounding_context = js_data["body"][context_start:context_end] if value_idx >= 0 else ""
+                
+                # Analyze with heuristics (now includes false positive detection)
+                heuristics = self.heuristic.analyze(assign["var"], assign["value"], surrounding_context)
+                
+                # Skip if marked as false positive
+                if heuristics.get("is_false_positive"):
+                    self.logger.debug(f"Skipping false positive: {assign['var']} - {heuristics.get('fp_reason', '')}")
+                    continue
                 
                 # Skip if not enough signals
                 if len(heuristics["signals"]) < 2:
@@ -950,13 +986,21 @@ class JSSecretsMiner(BaseScanner):
                     heuristics["provider"]
                 )
                 
-                # Calculate confidence
+                # Calculate confidence (includes penalty)
                 meta = {
                     "signals": heuristics["signals"],
                     "second_order": is_second_order,
                     "impact": impact,
+                    "entropy": heuristics.get("entropy", 0),
+                    "confidence_penalty": heuristics.get("confidence_penalty", 0),
+                    "is_false_positive": False,
                 }
                 confidence = self.scorer.score(meta)
+                
+                # Skip low confidence results (likely false positives)
+                if confidence < 40:
+                    self.logger.debug(f"Skipping low confidence ({confidence}%): {assign['var']}")
+                    continue
                 
                 # Get context
                 line_context = self.second_order.get_sink_context(
