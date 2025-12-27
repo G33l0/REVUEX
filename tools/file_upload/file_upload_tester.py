@@ -431,13 +431,14 @@ def main() -> int:
     result = scanner.run()
     if not args.quiet:
         print(f"\n{'='*60}\nSCAN COMPLETE\n{'='*60}")
-        print(f"Issues Found: {len(result.findings)}")
+        if result and hasattr(result, 'findings'):
+            print(f"Issues Found: {len(result.findings)}")
         print(f"Total Confidence: {scanner.total_confidence}")
-    if args.output:
-        output_data = {"scanner": SCANNER_NAME, "version": SCANNER_VERSION, "target": args.target, "findings": [{"id": f.id, "title": f.title, "severity": f.severity.value} for f in result.findings]}
+    if args.output and result:
+        output_data = {"scanner": SCANNER_NAME, "version": SCANNER_VERSION, "target": args.target, "findings": [{"id": f.id, "title": f.title, "severity": f.severity.value} for f in getattr(result, "findings", [])]}
         with open(args.output, "w") as f: json.dump(output_data, f, indent=2)
         if not args.quiet: print(f"\nResults saved to: {args.output}")
-    return 1 if result.findings else 0
+    return 1 if result and getattr(result, "findings", []) else 0
 
 if __name__ == "__main__":
     sys.exit(main())
