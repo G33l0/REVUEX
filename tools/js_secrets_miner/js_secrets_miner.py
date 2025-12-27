@@ -78,7 +78,7 @@ BANNER = r"""
 ██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
 ╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
 
-JS-Secrets-Miner GOLD v2.0 â Client-Side Trust Leak Intelligence
+JS-Secrets-Miner GOLD v4.0 - A B Client-Side Trust Leak Intelligence
 [Enhanced False Positive Filtering]
 """
 
