@@ -4,7 +4,7 @@ REVUEX Tech-Fingerprinter GOLD v3.1
 ===================================
 High-Confidence Technology Stack Detection via Invariants & Correlation.
 
-Enhancements (v1.1):
+Enhancements (v3.1):
 - TLS & HTTP/2 invariants
 - Passive WAF / CDN detection
 - Header normalization behavior
@@ -72,14 +72,14 @@ SCANNER_NAME = "Tech Fingerprinter GOLD"
 SCANNER_VERSION = "3.1.0"
 
 BANNER = r"""
-██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
-██╔══██╗██╔════╝██║   ██║██║   ██║██╔════╝╚██╗██╔╝
-██████╔╝█████╗  ██║   ██║██║   ██║█████╗   ╚███╔╝ 
-██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══╝   ██╔██╗ 
-██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
-╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
+âââââââ âââââââââââ   ââââââ   ââââââââââââââ  âââ
+âââââââââââââââââââ   ââââââ   âââââââââââââââââââ
+ââââââââââââââ  âââ   ââââââ   âââââââââ   ââââââ 
+ââââââââââââââ  ââââ âââââââ   âââââââââ   ââââââ 
+âââ  âââââââââââ âââââââ âââââââââââââââââââââ âââ
+âââ  âââââââââââ  âââââ   âââââââ âââââââââââ  âââ
 
-Tech-Fingerprinter GOLD — Passive Stack Intelligence
+Tech-Fingerprinter GOLD - A Passive Stack Intelligence
 """
 
 # Confidence threshold for confirmed detection
@@ -421,7 +421,7 @@ class TechFingerprinter(BaseScanner):
             for tech, hints in HEADER_HINTS.items():
                 if any(h in server for h in hints):
                     self._score(tech, 15, TechCategory.INFRASTRUCTURE, f"Server: {server}")
-                    print_success(f"Header invariant → {tech}")
+                    print_success(f"Header invariant â {tech}")
             
             # Check all header values
             for header, value in response.headers.items():
@@ -430,7 +430,7 @@ class TechFingerprinter(BaseScanner):
                     if any(h in value_lower for h in hints):
                         if self.confidence.get(tech, 0) < 15:  # Avoid double counting
                             self._score(tech, 10, TechCategory.INFRASTRUCTURE, f"{header}: {value}")
-                            print_success(f"Header invariant → {tech}")
+                            print_success(f"Header invariant â {tech}")
     
     def _analyze_cookies(self) -> None:
         """Analyze cookies for framework fingerprints."""
@@ -441,7 +441,7 @@ class TechFingerprinter(BaseScanner):
                 if any(cookie in cookie_names for cookie in names):
                     matched = [c for c in names if c in cookie_names]
                     self._score(tech, 25, TechCategory.FRAMEWORK, f"Cookie: {', '.join(matched)}")
-                    print_success(f"Cookie invariant → {tech}")
+                    print_success(f"Cookie invariant â {tech}")
     
     def _analyze_assets(self) -> None:
         """Analyze asset patterns in HTML."""
@@ -454,7 +454,7 @@ class TechFingerprinter(BaseScanner):
                 for pattern in patterns:
                     if re.search(pattern, text):
                         self._score(tech, 20, TechCategory.FRAMEWORK, f"Asset pattern: {pattern}")
-                        print_success(f"Asset invariant → {tech}")
+                        print_success(f"Asset invariant â {tech}")
                         break
     
     def _analyze_error_schemas(self) -> None:
@@ -473,7 +473,7 @@ class TechFingerprinter(BaseScanner):
                 for tech, schema in ERROR_SCHEMAS.items():
                     if schema.issubset(keys):
                         self._score(tech, 20, TechCategory.FRAMEWORK, f"Error schema: {schema}")
-                        print_success(f"Error schema invariant → {tech}")
+                        print_success(f"Error schema invariant â {tech}")
     
     def _analyze_meta_tags(self) -> None:
         """Analyze HTML meta tags for generators."""
@@ -500,7 +500,7 @@ class TechFingerprinter(BaseScanner):
                                 f"Generator: {generator}",
                                 version.group() if version else None
                             )
-                            print_success(f"Meta generator → {tech}")
+                            print_success(f"Meta generator â {tech}")
                             break
     
     def _analyze_tls(self) -> None:
@@ -521,7 +521,7 @@ class TechFingerprinter(BaseScanner):
                         proto, 10, TechCategory.INFRASTRUCTURE,
                         f"TLS: {proto}, Cipher: {cipher[0] if cipher else 'unknown'}"
                     )
-                    print_success(f"TLS invariant → {proto}")
+                    print_success(f"TLS invariant â {proto}")
                     
                     # Get certificate info
                     cert = ssock.getpeercert()
@@ -548,7 +548,7 @@ class TechFingerprinter(BaseScanner):
                             waf, 25, TechCategory.WAF_CDN,
                             f"WAF header: {sig_header}"
                         )
-                        print_success(f"WAF/CDN invariant → {waf}")
+                        print_success(f"WAF/CDN invariant â {waf}")
                         break
     
     def _analyze_powered_by(self) -> None:
@@ -569,7 +569,7 @@ class TechFingerprinter(BaseScanner):
                             f"X-Powered-By: {powered_by}",
                             version.group() if version else None
                         )
-                        print_success(f"X-Powered-By → {tech}")
+                        print_success(f"X-Powered-By â {tech}")
                         break
     
     # =========================================================================
@@ -610,7 +610,7 @@ class TechFingerprinter(BaseScanner):
                     version = det.version
         
         finding = Finding(
-            id=self._generate_finding_id(tech),
+            finding_id=self._generate_finding_id(tech),
             title=f"Technology Detected: {tech.title()}" + (f" {version}" if version else ""),
             severity=Severity.LOW,  # Informational
             description=f"Detected {tech} with confidence score {score}. Category: {category.value}",
@@ -721,7 +721,8 @@ def main() -> int:
         print("SCAN COMPLETE")
         print(f"{'='*60}")
         print(f"Target: {args.target}")
-        print(f"Duration: {result.duration_seconds:.2f}s")
+        if result and hasattr(result, 'duration_seconds') and result.duration_seconds:
+            print(f"Duration: {result.duration_seconds:.2f}s")
         print(f"Technologies Detected: {len(scanner.confidence)}")
         print(f"Confirmed: {sum(1 for s in scanner.confidence.values() if s >= args.threshold)}")
         
@@ -736,13 +737,13 @@ def main() -> int:
             for cat, count in by_category.items():
                 print(f"  {cat}: {count}")
     
-    if args.output:
+    if args.output and result:
         output_data = {
             "scanner": "REVUEX Tech Fingerprinter GOLD",
             "version": SCANNER_VERSION,
             "target": args.target,
-            "scan_id": result.scan_id,
-            "duration": result.duration_seconds,
+            "scan_id": getattr(result, 'scan_id', 'unknown'),
+            "duration": getattr(result, 'duration_seconds', 0),
             "intelligence": scanner.intel,
             "detections": [
                 {
@@ -760,7 +761,7 @@ def main() -> int:
                     "title": f.title,
                     "severity": f.severity.value,
                 }
-                for f in result.findings
+                for f in getattr(result, 'findings', [])
             ]
         }
         
