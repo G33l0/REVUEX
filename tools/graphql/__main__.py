@@ -10,7 +10,12 @@ Author: REVUEX Team
 License: MIT
 """
 
-from .graphql_scanner import main
+import sys
+
+try:
+    from .graphql_scanner import main
+except ImportError:
+    from graphql_scanner import main
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
