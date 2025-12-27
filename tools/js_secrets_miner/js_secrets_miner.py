@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX JS-Secrets-Miner GOLD v4.0
+REVUEX JS-Secrets-Miner GOLD v1.0
 =================================
 10/10 Research-Grade JavaScript Secret & Trust-Leak Discovery Engine
 
@@ -68,17 +68,17 @@ from core.utils import (
 # =============================================================================
 
 SCANNER_NAME = "JS Secrets Miner GOLD"
-SCANNER_VERSION = "4.0.0"
+SCANNER_VERSION = "2.2.0"
 
 BANNER = r"""
-██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
-██╔══██╗██╔════╝██║   ██║██║   ██║██╔════╝╚██╗██╔╝
-██████╔╝█████╗  ██║   ██║██║   ██║█████╗   ╚███╔╝ 
-██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══╝   ██╔██╗ 
-██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
-╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
+âââââââ âââââââââââ   ââââââ   ââââââââââââââ  âââ
+âââââââââââââââââââ   ââââââ   âââââââââââââââââââ
+ââââââââââââââ  âââ   ââââââ   âââââââââ   ââââââ 
+ââââââââââââââ  ââââ âââââââ   âââââââââ   ââââââ 
+âââ  âââââââââââ âââââââ âââââââââââââââââââââ âââ
+âââ  âââââââââââ  âââââ   âââââââ âââââââââââ  âââ
 
-JS-Secrets-Miner GOLD v4.0 - A Client-Side Trust Leak Intelligence
+JS-Secrets-Miner GOLD v2.2 â Client-Side Trust Leak Intelligence
 [Enhanced False Positive Filtering]
 """
 
@@ -86,7 +86,7 @@ JS-Secrets-Miner GOLD v4.0 - A Client-Side Trust Leak Intelligence
 CONFIDENCE_THRESHOLD = 70
 
 # =============================================================================
-# FALSE POSITIVE EXCLUSION PATTERNS (NEW)
+# FALSE POSITIVE EXCLUSION PATTERNS (ENHANCED v2.2)
 # =============================================================================
 
 # Variable names that indicate UI/translation/config (NOT secrets)
@@ -102,6 +102,22 @@ FALSE_POSITIVE_VAR_PATTERNS = [
     r'(?i)^(width|height|size|margin|padding|border|color|background)',
     r'(?i)^(route|path|url|link|href|src|redirect)$',
     r'(?i)^(status|state|mode|phase|step|stage|version)$',
+    # NEW: Exclude step/flow/reducer names that contain keywords
+    r'(?i)(Step|Steps|Stage|Phase|Flow|Reducer|Action|Event|Handler)$',
+    r'(?i)^(Branded|Signup|SignUp|Login|Register|Checkout|Payment)',
+    r'(?i)_(STEP|STEPS|STAGE|PHASE|FLOW|EVENT|ACTION|NAME|TYPE|ID)$',
+    r'(?i)^[A-Z][a-z]+[A-Z][a-z]+(Step|Phase|Stage|Event)$',  # CamelCase steps
+    # NEW: LocalStorage/SessionStorage key names
+    r'(?i)LOCAL_STORAGE_KEY$',
+    r'(?i)SESSION_STORAGE_KEY$',
+    r'(?i)STORAGE_KEY$',
+    r'(?i)^(DARK_MODE|THEME|LANG|LOCALE|USER_PREF)',
+    # NEW: Polling/interval config
+    r'(?i)(INTERVAL|TIMEOUT|DELAY|RETRIES|RETRY|POLLING)$',
+    r'(?i)^(MAX_|MIN_|DEFAULT_)',
+    # NEW: URL/HTTP config
+    r'(?i)^(HTTP|HTTPS|WS|WSS)_PREFIX$',
+    r'(?i)^(API_|BASE_|ROOT_)?(URL|URI|ENDPOINT|HOST|DOMAIN)$',
 ]
 
 # Value patterns that are clearly NOT secrets
@@ -120,7 +136,37 @@ FALSE_POSITIVE_VALUE_PATTERNS = [
     r'^(https?:\/\/|\/\/|\/)[^\s]*\.(css|js|woff|ttf|eot)',  # Asset URLs
     r'(?i)^(select|insert|update|delete|from|where|and|or)[\s_]',  # SQL fragments
     r'^[\w\s]{50,}$',  # Long text with spaces (likely human readable text)
+    # NEW: Common localStorage key values
+    r'(?i)^is[A-Z][a-zA-Z]+$',  # isDarkMode, isLoggedIn, etc.
+    r'(?i)^(darkMode|lightMode|theme|language|locale|lang)$',
+    r'(?i)^[a-z]+_[a-z]+_[a-z]+$',  # snake_case_names (usually config)
+    # NEW: Camel case identifiers that are NOT secrets
+    r'^[a-z]+[A-Z][a-zA-Z]+$',  # camelCaseNames without numbers
+    # NEW: Simple short strings that can't be secrets
+    r'^[a-zA-Z]{1,12}$',  # Short alpha-only strings
+    r'^[a-z]{2}$',  # Language codes (en, es, de, etc.)
+    r'^[A-Z]{2}$',  # Country codes (US, ES, GB, etc.)
 ]
+
+# Known safe values that should NEVER be flagged
+KNOWN_SAFE_VALUES = {
+    # Fetch/HTTP config
+    "same-origin", "include", "omit", "cors", "no-cors", "navigate",
+    "default", "no-store", "reload", "no-cache", "force-cache", "only-if-cached",
+    "follow", "error", "manual",
+    "json", "text", "blob", "arraybuffer", "document",
+    # HTTP methods
+    "get", "post", "put", "delete", "patch", "head", "options",
+    # Common config values
+    "true", "false", "null", "undefined", "none", "auto",
+    # Theme/UI values
+    "dark", "light", "system", "auto",
+    "isDarkMode", "isLightMode", "darkMode", "lightMode",
+    # Common localStorage key names
+    "theme", "language", "locale", "lang", "token", "user", "auth",
+    # URL prefixes
+    "http://", "https://", "ws://", "wss://", "//",
+}
 
 # Context patterns that indicate false positives (surrounding code)
 FALSE_POSITIVE_CONTEXT_PATTERNS = [
@@ -141,13 +187,23 @@ FALSE_POSITIVE_CONTEXT_PATTERNS = [
     r'\.innerText\s*=',
     r'console\.(log|warn|error|info)',
     r'throw\s+new\s+Error',
+    # NEW: Redux/state management
+    r'makeReducer\s*\(',
+    r'createSlice\s*\(',
+    r'createAction\s*\(',
+    r'dispatch\s*\(',
+    # NEW: Step/flow definitions
+    r'Step\s*:\s*["\']',
+    r'step\s*:\s*["\']',
+    r'phase\s*:\s*["\']',
+    r'stage\s*:\s*["\']',
 ]
 
-# Minimum entropy for a real secret (increased from 3.5)
-MIN_SECRET_ENTROPY = 4.0
+# Minimum entropy for a real secret (increased from 4.0 to 4.5)
+MIN_SECRET_ENTROPY = 4.5
 
 # Minimum length for high-confidence secrets
-MIN_SECRET_LENGTH = 16
+MIN_SECRET_LENGTH = 20
 
 # Secret keyword indicators
 SECRET_KEYWORDS = [
@@ -248,49 +304,6 @@ FALSE_POSITIVE_VALUE_PATTERNS = [
     r"^\d{1,2}px$|^\d{1,3}%$|^\d{1,2}rem$",  # CSS units
 ]
 
-# Known fetch/axios/HTTP configuration values - NOT secrets
-KNOWN_CONFIG_VALUES = [
-    # Fetch API credentials option
-    "same-origin", "include", "omit",
-    # Fetch API mode option
-    "cors", "no-cors", "same-origin", "navigate",
-    # Fetch API cache option
-    "default", "no-store", "reload", "no-cache", "force-cache", "only-if-cached",
-    # Fetch API redirect option
-    "follow", "error", "manual",
-    # HTTP methods
-    "GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS",
-    # Content types
-    "application/json", "application/x-www-form-urlencoded", "multipart/form-data",
-    "text/plain", "text/html", "text/xml",
-    # Common config values
-    "true", "false", "null", "undefined", "none", "auto",
-    # Response types
-    "json", "text", "blob", "arraybuffer", "document",
-]
-
-# Context indicators - if variable appears in these contexts, likely NOT a secret
-FALSE_POSITIVE_CONTEXT_PATTERNS = [
-    r"label\s*:\s*['\"]",
-    r"description\s*:\s*['\"]",
-    r"placeholder\s*:\s*['\"]",
-    r"title\s*:\s*['\"]",
-    r"message\s*:\s*['\"]",
-    r"tooltip\s*:\s*['\"]",
-    r"hint\s*:\s*['\"]",
-    r"text\s*:\s*['\"]",
-    r"translation\s*:\s*['\"]",
-    r"i18n\s*:\s*['\"]",
-    r"searchSuggestion\s*:\s*\{",
-    r"options\s*:\s*\{",
-]
-
-# Minimum entropy for real secrets (UI labels have low entropy)
-MIN_SECRET_ENTROPY = 3.0
-
-# Minimum length for real secrets
-MIN_SECRET_LENGTH = 16
-
 # Secret category classification
 class SecretCategory(Enum):
     SERVER_SECRET_LEAK = "server_secret_leak"
@@ -326,7 +339,7 @@ def calculate_entropy(s: str) -> float:
 
 
 # =============================================================================
-# FALSE POSITIVE FILTER (NEW - v2.0)
+# FALSE POSITIVE FILTER (ENHANCED - v2.2)
 # =============================================================================
 
 class FalsePositiveFilter:
@@ -348,40 +361,47 @@ class FalsePositiveFilter:
         Returns:
             tuple: (is_false_positive: bool, reason: str)
         """
-        # Check variable name patterns
+        # Check 1: Known safe values (exact match)
+        if value.lower() in KNOWN_SAFE_VALUES or value in KNOWN_SAFE_VALUES:
+            return True, f"Value is a known safe configuration: {value}"
+        
+        # Check 2: Variable name patterns (UI/config indicators)
         for pattern in self.var_patterns:
             if pattern.search(var):
-                return True, f"Variable name matches UI/translation pattern: {var}"
+                return True, f"Variable name matches UI/config pattern: {var}"
         
-        # Check value patterns
+        # Check 3: Value patterns (non-secret formats)
         for pattern in self.value_patterns:
             if pattern.match(value):
-                return True, f"Value matches non-secret pattern"
+                return True, f"Value matches non-secret pattern: {value[:30]}"
         
-        # Check for known configuration values (fetch, axios, HTTP)
-        if value.lower() in [v.lower() for v in KNOWN_CONFIG_VALUES]:
-            return True, f"Value is a known configuration option: {value}"
-        
-        # Check context patterns
+        # Check 4: Context patterns (surrounding code indicates config/UI)
         if context:
             for pattern in self.context_patterns:
                 if pattern.search(context):
-                    return True, f"Context indicates UI/translation usage"
+                    return True, f"Context indicates UI/config usage"
         
-        # Check for human-readable text (spaces, common words)
+        # Check 5: Human-readable text detection
         if self._is_human_readable(value):
             return True, "Value appears to be human-readable text"
         
-        # Check entropy - low entropy values are likely not secrets
+        # Check 6: Entropy check - low entropy = not random = not a secret
         entropy = calculate_entropy(value)
-        if entropy < 2.5 and len(value) > 10:
-            return True, f"Low entropy ({entropy:.2f}) suggests non-random value"
+        if entropy < MIN_SECRET_ENTROPY and len(value) < 40:
+            return True, f"Low entropy ({entropy:.2f}) - not random enough for secret"
         
-        # Check for repeated patterns (not random)
+        # Check 7: Length check - too short to be a real secret
+        if len(value) < MIN_SECRET_LENGTH:
+            # Exception: known API key prefixes
+            has_known_prefix = any(value.startswith(prefix) for prefix in THIRD_PARTY_HINTS.keys())
+            if not has_known_prefix:
+                return True, f"Value too short ({len(value)} chars) to be a secret"
+        
+        # Check 8: Repeated patterns
         if self._has_repeated_pattern(value):
             return True, "Value contains repeated patterns"
         
-        # Check for ALL_CAPS_SNAKE_CASE constants (likely enum/config names)
+        # Check 9: ALL_CAPS_SNAKE_CASE constants (likely enum/config names)
         if re.match(r'^[A-Z][A-Z0-9_]{5,}$', value) and '_' in value:
             return True, "Value appears to be a constant name, not a secret"
         
