@@ -718,7 +718,8 @@ def main() -> int:
         print("SCAN COMPLETE")
         print(f"{'='*60}")
         print(f"Target: {args.target}")
-        print(f"Duration: {result.duration_seconds:.2f}s")
+        if result and hasattr(result, "duration_seconds") and result.duration_seconds:
+            print(f"Duration: {result.duration_seconds:.2f}s")
         print(f"Libraries Found: {len(scanner.discovered_libraries)}")
         print(f"Vulnerable: {sum(1 for r in scanner.check_results if r.is_vulnerable)}")
         print(f"Total Confidence: {scanner.total_confidence}")
@@ -736,7 +737,7 @@ def main() -> int:
                     "version": f.payload,
                     "severity": f.severity.value
                 }
-                for f in result.findings
+                for f in getattr(result, "findings", [])
             ]
         }
         with open(args.output, "w") as f:
