@@ -770,7 +770,8 @@ def main() -> int:
         print("SCAN COMPLETE")
         print(f"{'='*60}")
         print(f"Target: {args.target}")
-        print(f"Duration: {result.duration_seconds:.2f}s")
+        if result and hasattr(result, "duration_seconds") and result.duration_seconds:
+            print(f"Duration: {result.duration_seconds:.2f}s")
         print(f"Checks Performed: {len(scanner.check_results)}")
         print(f"Issues Found: {len(result.findings)}")
         print(f"Confidence Score: {scanner.total_confidence}")
@@ -791,8 +792,8 @@ def main() -> int:
             "scanner": "REVUEX Business Logic GOLD",
             "version": SCANNER_VERSION,
             "target": args.target,
-            "scan_id": result.scan_id,
-            "duration": result.duration_seconds,
+            "scan_id": getattr(result, "scan_id", "unknown") if result else "unknown",
+            "duration": getattr(result, "duration_seconds", 0) if result else 0,
             "confidence_score": scanner.total_confidence,
             "baseline": baseline,
             "check_results": [
@@ -811,7 +812,7 @@ def main() -> int:
                     "title": f.title,
                     "severity": f.severity.value,
                 }
-                for f in result.findings
+                for f in getattr(result, "findings", [])
             ]
         }
         
