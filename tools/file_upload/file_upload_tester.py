@@ -37,7 +37,7 @@ from core.base_scanner import BaseScanner, Finding, ScanResult, Severity, ScanSt
 from core.utils import print_success, print_error, print_warning, print_info
 
 SCANNER_NAME = "File Upload Scanner GOLD"
-SCANNER_VERSION = "1.0.0"
+SCANNER_VERSION = "4.0.0"
 
 BANNER = r"""
 ██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
@@ -221,7 +221,7 @@ class FileUploadScanner(BaseScanner):
     
     def _upload_file(self, file_obj: Dict[str, Any]) -> Optional[Any]:
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         files = {self.upload_field: (file_obj["filename"], file_obj["content"], file_obj["mime"])}
         try:
             response = self.session.post(self.target, files=files, headers=self.custom_headers, timeout=self.timeout)
