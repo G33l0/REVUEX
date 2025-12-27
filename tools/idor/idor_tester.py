@@ -984,7 +984,8 @@ def main() -> int:
         print(f"{'='*60}")
         print(f"Target: {args.target}")
         print(f"Object ID: {scanner.object_id or 'Auto-detected'}")
-        print(f"Duration: {result.duration_seconds:.2f}s")
+        if result and hasattr(result, "duration_seconds") and result.duration_seconds:
+            print(f"Duration: {result.duration_seconds:.2f}s")
         print(f"Requests: {result.total_requests}")
         print(f"Findings: {len(result.findings)}")
         
@@ -1016,8 +1017,8 @@ def main() -> int:
             "version": SCANNER_VERSION,
             "target": args.target,
             "object_id": scanner.object_id,
-            "scan_id": result.scan_id,
-            "duration": result.duration_seconds,
+            "scan_id": getattr(result, "scan_id", "unknown") if result else "unknown",
+            "duration": getattr(result, "duration_seconds", 0) if result else 0,
             "phases": {
                 "direct": {"tested": True, "vulnerable": direct_vulns > 0},
                 "blind": {"tested": not args.no_blind, "vulnerable": blind_vulns > 0},
@@ -1043,7 +1044,7 @@ def main() -> int:
                     "evidence": f.evidence,
                     "remediation": f.remediation,
                 }
-                for f in result.findings
+                for f in getattr(result, "findings", [])
             ]
         }
         
