@@ -37,15 +37,15 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # CONSTANTS & CONFIGURATION
 # =============================================================================
 
-REVUEX_VERSION = "4.0.0"
+REVUEX_VERSION = "1.0.0"
 REVUEX_BANNER = r"""
-██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
-██╔══██╗██╔════╝██║   ██║██║   ██║██╔════╝╚██╗██╔╝
-██████╔╝█████╗  ██║   ██║██║   ██║█████╗   ╚███╔╝ 
-██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══╝   ██╔██╗ 
-██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
-╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
-        Bug Bounty Automation Framework GOLD v4.0
+âââââââ âââââââââââ   ââââââ   ââââââââââââââ  âââ
+âââââââââââââââââââ   ââââââ   âââââââââââââââââââ
+ââââââââââââââ  âââ   ââââââ   âââââââââ   ââââââ 
+ââââââââââââââ  ââââ âââââââ   âââââââââ   ââââââ 
+âââ  âââââââââââ âââââââ âââââââââââââââââââââ âââ
+âââ  âââââââââââ  âââââ   âââââââ âââââââââââ  âââ
+        Bug Bounty Automation Framework GOLD v1.0
 """
 
 # Default configuration values
@@ -171,6 +171,7 @@ class Finding:
     references: List[str] = field(default_factory=list)
     
     # Metadata
+    id: str = ""  # Alias for finding_id
     finding_id: str = ""
     timestamp: str = ""
     scanner_name: str = ""
@@ -183,9 +184,14 @@ class Finding:
     
     def __post_init__(self):
         """Generate finding ID and timestamp if not provided"""
+        # Handle both id and finding_id
+        if self.id and not self.finding_id:
+            self.finding_id = self.id
         if not self.finding_id:
             unique_str = f"{self.title}{self.url}{self.payload}{time.time()}"
             self.finding_id = hashlib.sha256(unique_str.encode()).hexdigest()[:16]
+        # Sync id with finding_id
+        self.id = self.finding_id
         if not self.timestamp:
             self.timestamp = datetime.now(timezone.utc).isoformat()
     
