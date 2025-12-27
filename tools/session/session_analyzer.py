@@ -50,7 +50,7 @@ from core.utils import print_success, print_error, print_warning, print_info
 # =============================================================================
 
 SCANNER_NAME = "Session Scanner GOLD"
-SCANNER_VERSION = "1.0.0"
+SCANNER_VERSION = "4.0.0"
 
 BANNER = r"""
 ██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
@@ -556,7 +556,8 @@ def main() -> int:
         print("SCAN COMPLETE")
         print(f"{'='*60}")
         print(f"Target: {args.target}")
-        print(f"Duration: {result.duration_seconds:.2f}s")
+        if result and hasattr(result, "duration_seconds") and result.duration_seconds:
+            print(f"Duration: {result.duration_seconds:.2f}s")
         print(f"States Captured: {len(scanner.states)}")
         print(f"Issues Found: {len(result.findings)}")
         print(f"Total Confidence: {scanner.total_confidence}")
@@ -567,7 +568,7 @@ def main() -> int:
             "version": SCANNER_VERSION,
             "target": args.target,
             "states_captured": list(scanner.states.keys()),
-            "findings": [{"id": f.id, "title": f.title, "severity": f.severity.value} for f in result.findings]
+            "findings": [{"id": f.id, "title": f.title, "severity": f.severity.value} for f in getattr(result, "findings", [])]
         }
         with open(args.output, "w") as f:
             json.dump(output_data, f, indent=2)
