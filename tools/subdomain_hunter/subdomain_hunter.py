@@ -66,7 +66,7 @@ from core.utils import (
 # =============================================================================
 
 SCANNER_NAME = "Subdomain Hunter GOLD"
-SCANNER_VERSION = "1.0.0"
+SCANNER_VERSION = "4.0.0"
 
 BANNER = r"""
 ██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
@@ -888,7 +888,8 @@ def main() -> int:
         print("SCAN COMPLETE")
         print(f"{'='*60}")
         print(f"Domain: {args.domain}")
-        print(f"Duration: {result.duration_seconds:.2f}s")
+        if result and hasattr(result, "duration_seconds") and result.duration_seconds:
+            print(f"Duration: {result.duration_seconds:.2f}s")
         print(f"Subdomains Found: {len(hunter.all_subdomains)}")
         print(f"High-Confidence: {len(result.findings)}")
         
@@ -906,8 +907,8 @@ def main() -> int:
             "scanner": "REVUEX Subdomain Hunter GOLD",
             "version": SCANNER_VERSION,
             "domain": args.domain,
-            "scan_id": result.scan_id,
-            "duration": result.duration_seconds,
+            "scan_id": getattr(result, "scan_id", "unknown") if result else "unknown",
+            "duration": getattr(result, "duration_seconds", 0) if result else 0,
             "all_subdomains": list(hunter.all_subdomains.keys()),
             "results": [
                 {
@@ -928,7 +929,7 @@ def main() -> int:
                     "severity": f.severity.value,
                     "subdomain": f.payload,
                 }
-                for f in result.findings
+                for f in getattr(result, "findings", [])
             ]
         }
         
