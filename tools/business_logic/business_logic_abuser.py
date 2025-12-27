@@ -70,7 +70,7 @@ from core.utils import (
 # =============================================================================
 
 SCANNER_NAME = "Business Logic Scanner GOLD"
-SCANNER_VERSION = "1.0.0"
+SCANNER_VERSION = "4.0.0"
 
 BANNER = r"""
 ██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
@@ -278,7 +278,7 @@ class BusinessLogicScanner(BaseScanner):
     def _send_request(self, spec: Dict[str, Any]):
         """Send HTTP request based on spec."""
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         method = spec.get("method", "GET").upper()
         path = spec.get("path", "")
