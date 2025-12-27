@@ -59,7 +59,7 @@ from core.utils import (
 # =============================================================================
 
 SCANNER_NAME = "SQLi Scanner GOLD"
-SCANNER_VERSION = "3.5.0"
+SCANNER_VERSION = "4.0.0"
 
 # SQL error patterns by DBMS
 SQL_ERRORS = {
@@ -453,7 +453,7 @@ class SQLiScanner(BaseScanner):
             Tuple of (response, elapsed_time)
         """
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         # Generate second-order marker
         marker = f"REVUEX_{hashlib.md5(payload.encode()).hexdigest()[:6]}"
