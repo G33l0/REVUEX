@@ -1188,7 +1188,7 @@ class BaseScanner(ABC):
         </div>
         
         <div class="disclaimer">
-            <strong>â ï¸ Legal Disclaimer:</strong> This report is generated for authorized security testing only.
+            <strong>⚠️ Legal Disclaimer:</strong> This report is generated for authorized security testing only.
             Unauthorized access to computer systems is illegal. The findings in this report should be used
             for remediation purposes by authorized personnel only.
         </div>
@@ -1481,26 +1481,26 @@ def get_scanner_info() -> Dict[str, str]:
 def print_disclaimer() -> None:
     """Print legal disclaimer"""
     disclaimer = """
-ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-â                              LEGAL DISCLAIMER                                 â
-â âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ£
-â  This tool is designed for authorized security testing and bug bounty        â
-â  hunting ONLY. Users are responsible for ensuring they have proper           â
-â  authorization before testing any target.                                    â
-â                                                                              â
-â  Unauthorized access to computer systems is illegal under laws including:    â
-â  - Computer Fraud and Abuse Act (CFAA) - United States                      â
-â  - Computer Misuse Act - United Kingdom                                      â
-â  - Similar legislation in other jurisdictions                                â
-â                                                                              â
-â  By using this tool, you agree to:                                          â
-â  1. Only test systems you own or have explicit written permission to test   â
-â  2. Follow responsible disclosure practices                                  â
-â  3. Comply with all applicable bug bounty program rules                     â
-â  4. Not use this tool for malicious purposes                                â
-â                                                                              â
-â  THE AUTHORS ASSUME NO LIABILITY FOR MISUSE OF THIS SOFTWARE                â
-ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                              LEGAL DISCLAIMER                                 ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  This tool is designed for authorized security testing and bug bounty        ║
+║  hunting ONLY. Users are responsible for ensuring they have proper           ║
+║  authorization before testing any target.                                    ║
+║                                                                              ║
+║  Unauthorized access to computer systems is illegal under laws including:    ║
+║  - Computer Fraud and Abuse Act (CFAA) - United States                      ║
+║  - Computer Misuse Act - United Kingdom                                      ║
+║  - Similar legislation in other jurisdictions                                ║
+║                                                                              ║
+║  By using this tool, you agree to:                                          ║
+║  1. Only test systems you own or have explicit written permission to test   ║
+║  2. Follow responsible disclosure practices                                  ║
+║  3. Comply with all applicable bug bounty program rules                     ║
+║  4. Not use this tool for malicious purposes                                ║
+║                                                                              ║
+║  THE AUTHORS ASSUME NO LIABILITY FOR MISUSE OF THIS SOFTWARE                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 """
     print(disclaimer)
 
