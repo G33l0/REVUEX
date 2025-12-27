@@ -50,7 +50,7 @@ from core.utils import print_success, print_error, print_warning, print_info
 # =============================================================================
 
 SCANNER_NAME = "XXE Scanner GOLD"
-SCANNER_VERSION = "1.0.0"
+SCANNER_VERSION = "4.0.0"
 
 BANNER = r"""
 ██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
@@ -665,7 +665,8 @@ def main() -> int:
         print("SCAN COMPLETE")
         print(f"{'='*60}")
         print(f"Target: {args.url}")
-        print(f"Duration: {result.duration_seconds:.2f}s")
+        if result and hasattr(result, "duration_seconds") and result.duration_seconds:
+            print(f"Duration: {result.duration_seconds:.2f}s")
         print(f"Parser Detected: {scanner.detected_parser or 'Unknown'}")
         print(f"Total Confidence: {scanner.total_confidence}%")
         print(f"Vulnerable: {'YES' if scanner.total_confidence >= CONFIDENCE_THRESHOLD else 'NO'}")
@@ -690,7 +691,7 @@ def main() -> int:
                     "title": f.title,
                     "severity": f.severity.value
                 }
-                for f in result.findings
+                for f in getattr(result, "findings", [])
             ]
         }
         with open(args.output, "w") as f:
