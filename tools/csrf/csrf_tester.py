@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX CSRF GOLD v1.0
+REVUEX CSRF GOLD v4.0
 =====================
 Research-Grade CSRF Validation Scanner (10/10 GOLD)
 
@@ -51,7 +51,7 @@ from core.utils import print_success, print_error, print_warning, print_info
 # =============================================================================
 
 SCANNER_NAME = "CSRF Scanner GOLD"
-SCANNER_VERSION = "1.0.0"
+SCANNER_VERSION = "4.0.0"
 
 BANNER = r"""
 ██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
