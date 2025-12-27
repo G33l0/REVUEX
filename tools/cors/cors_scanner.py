@@ -54,14 +54,14 @@ SCANNER_NAME = "CORS Scanner GOLD"
 SCANNER_VERSION = "4.0.0"
 
 BANNER = r"""
-██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
-██╔══██╗██╔════╝██║   ██║██║   ██║██╔════╝╚██╗██╔╝
-██████╔╝█████╗  ██║   ██║██║   ██║█████╗   ╚███╔╝ 
-██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══╝   ██╔██╗ 
-██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
-╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
+âââââââ âââââââââââ   ââââââ   ââââââââââââââ  âââ
+âââââââââââââââââââ   ââââââ   âââââââââââââââââââ
+ââââââââââââââ  âââ   ââââââ   âââââââââ   ââââââ 
+ââââââââââââââ  ââââ âââââââ   âââââââââ   ââââââ 
+âââ  âââââââââââ âââââââ âââââââââââââââââââââ âââ
+âââ  âââââââââââ  âââââ   âââââââ âââââââââââ  âââ
 
-CORS Scanner GOLD — Cross-Origin Resource Sharing Analysis
+CORS Scanner GOLD - A Cross-Origin Resource Sharing Analysis
 """
 
 CONFIDENCE_THRESHOLD = 80
@@ -569,8 +569,10 @@ def main() -> int:
         print(f"{'='*60}")
         print(f"Target: {args.target}")
         print(f"Domain: {scanner.base_domain}")
-        print(f"Duration: {result.duration_seconds:.2f}s")
-        print(f"Issues Found: {len(result.findings)}")
+        if result and hasattr(result, 'duration_seconds') and result.duration_seconds:
+            print(f"Duration: {result.duration_seconds:.2f}s")
+        if result and hasattr(result, 'findings'):
+            print(f"Issues Found: {len(result.findings)}")
         print(f"Total Confidence: {scanner.total_confidence}")
         
         if scanner.baseline_response:
@@ -578,7 +580,7 @@ def main() -> int:
             print(f"  ACAO: {scanner.baseline_response.get('acao', 'None')}")
             print(f"  ACAC: {scanner.baseline_response.get('acac', 'None')}")
     
-    if args.output:
+    if args.output and result:
         output_data = {
             "scanner": SCANNER_NAME,
             "version": SCANNER_VERSION,
@@ -592,7 +594,7 @@ def main() -> int:
                     "severity": f.severity.value,
                     "origin": f.payload
                 }
-                for f in result.findings
+                for f in getattr(result, 'findings', [])
             ]
         }
         with open(args.output, "w") as f:
@@ -600,7 +602,7 @@ def main() -> int:
         if not args.quiet:
             print(f"\nResults saved to: {args.output}")
     
-    return 1 if result.findings else 0
+    return 1 if (result and result.findings) else 0
 
 
 if __name__ == "__main__":
