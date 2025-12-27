@@ -743,7 +743,8 @@ def main() -> int:
         print("SCAN COMPLETE")
         print(f"{'='*60}")
         print(f"Endpoint: {args.endpoint}")
-        print(f"Duration: {result.duration_seconds:.2f}s")
+        if result and hasattr(result, "duration_seconds") and result.duration_seconds:
+            print(f"Duration: {result.duration_seconds:.2f}s")
         print(f"Issues Found: {len(result.findings)}")
         print(f"Total Confidence: {scanner.total_confidence}")
         
@@ -756,7 +757,7 @@ def main() -> int:
             "version": SCANNER_VERSION,
             "endpoint": args.endpoint,
             "schema_exposed": scanner.schema_data is not None,
-            "findings": [{"id": f.id, "title": f.title, "severity": f.severity.value} for f in result.findings]
+            "findings": [{"id": f.id, "title": f.title, "severity": f.severity.value} for f in getattr(result, "findings", [])]
         }
         with open(args.output, "w") as f:
             json.dump(output_data, f, indent=2)
