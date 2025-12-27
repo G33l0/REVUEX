@@ -61,7 +61,7 @@ BANNER = r"""
 ██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
 ╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
 
-CORS Scanner GOLD - A Cross-Origin Resource Sharing Analysis
+CORS Scanner GOLD — Cross-Origin Resource Sharing Analysis
 """
 
 CONFIDENCE_THRESHOLD = 80
