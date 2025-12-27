@@ -37,15 +37,15 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 # CONSTANTS & CONFIGURATION
 # =============================================================================
 
-REVUEX_VERSION = "4.0.0"
+REVUEX_VERSION = "1.0.0"
 REVUEX_BANNER = r"""
-██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
-██╔══██╗██╔════╝██║   ██║██║   ██║██╔════╝╚██╗██╔╝
-██████╔╝█████╗  ██║   ██║██║   ██║█████╗   ╚███╔╝ 
-██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══╝   ██╔██╗ 
-██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
-╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
-        Bug Bounty Automation Framework GOLD v4.0
+âââââââ âââââââââââ   ââââââ   ââââââââââââââ  âââ
+âââââââââââââââââââ   ââââââ   âââââââââââââââââââ
+ââââââââââââââ  âââ   ââââââ   âââââââââ   ââââââ 
+ââââââââââââââ  ââââ âââââââ   âââââââââ   ââââââ 
+âââ  âââââââââââ âââââââ âââââââââââââââââââââ âââ
+âââ  âââââââââââ  âââââ   âââââââ âââââââââââ  âââ
+        Bug Bounty Automation Framework GOLD v1.0
 """
 
 # Default configuration values
@@ -1391,25 +1391,28 @@ class BaseScanner(ABC):
         
         return True
     
-    def post_scan(self, result: ScanResult) -> None:
+    def post_scan(self, result: ScanResult = None) -> None:
         """Post-scan hook for cleanup and summary"""
         self._status = ScanStatus.COMPLETED
         
-        if not self.quiet:
+        if not self.quiet and result is not None:
             print()
             self.log_info("=" * 50)
             self.log_info("SCAN COMPLETE")
             self.log_info("=" * 50)
-            self.log_info(f"Duration: {result.duration_seconds:.2f} seconds")
-            self.log_info(f"Requests: {result.total_requests} total, {result.failed_requests} failed")
-            self.log_info(f"Findings: {len(result.findings)} total")
-            
-            for severity in Severity:
-                count = result.finding_count.get(severity.value, 0)
-                if count > 0:
-                    color = severity.color if self.color else ""
-                    reset = "\033[0m" if self.color else ""
-                    print(f"  {color}{severity.value.upper()}: {count}{reset}")
+            if hasattr(result, 'duration_seconds') and result.duration_seconds is not None:
+                self.log_info(f"Duration: {result.duration_seconds:.2f} seconds")
+            if hasattr(result, 'total_requests'):
+                self.log_info(f"Requests: {result.total_requests} total, {result.failed_requests} failed")
+            if hasattr(result, 'findings'):
+                self.log_info(f"Findings: {len(result.findings)} total")
+                
+                for severity in Severity:
+                    count = result.finding_count.get(severity.value, 0)
+                    if count > 0:
+                        color = severity.color if self.color else ""
+                        reset = "\033[0m" if self.color else ""
+                        print(f"  {color}{severity.value.upper()}: {count}{reset}")
     
     def run(self) -> ScanResult:
         """
