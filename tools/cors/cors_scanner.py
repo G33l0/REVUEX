@@ -51,7 +51,7 @@ from core.utils import print_success, print_error, print_warning, print_info
 # =============================================================================
 
 SCANNER_NAME = "CORS Scanner GOLD"
-SCANNER_VERSION = "1.0.0"
+SCANNER_VERSION = "4.0.0"
 
 BANNER = r"""
 ██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
@@ -255,7 +255,7 @@ class CORSScanner(BaseScanner):
     def _test_origin(self, origin: str, test_type: str) -> None:
         """Test a single origin."""
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         headers = {**self.custom_headers, "Origin": origin}
         
@@ -365,7 +365,7 @@ class CORSScanner(BaseScanner):
     def _test_preflight(self) -> None:
         """Test CORS preflight requests."""
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         headers = {
             **self.custom_headers,
