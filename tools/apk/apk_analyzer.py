@@ -786,7 +786,8 @@ def main() -> int:
         print("SCAN COMPLETE")
         print(f"{'='*60}")
         print(f"APK: {args.apk}")
-        print(f"Duration: {result.duration_seconds:.2f}s")
+        if result and hasattr(result, "duration_seconds") and result.duration_seconds:
+            print(f"Duration: {result.duration_seconds:.2f}s")
         print(f"Issues Found: {len(result.findings)}")
         print(f"Total Confidence: {analyzer.total_confidence}")
         print(f"URLs Extracted: {len(analyzer.found_urls)}")
@@ -799,7 +800,7 @@ def main() -> int:
             "apk": args.apk,
             "apk_info": analyzer.apk_info,
             "urls_extracted": list(analyzer.found_urls)[:50],
-            "findings": [{"id": f.id, "title": f.title, "severity": f.severity.value} for f in result.findings]
+            "findings": [{"id": f.id, "title": f.title, "severity": f.severity.value} for f in getattr(result, "findings", [])]
         }
         with open(args.output, "w") as f:
             json.dump(output_data, f, indent=2)
