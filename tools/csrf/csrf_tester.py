@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX CSRF GOLD v4.0
+REVUEX CSRF GOLD v1.0
 =====================
 Research-Grade CSRF Validation Scanner (10/10 GOLD)
 
@@ -227,7 +227,7 @@ class CSRFScanner(BaseScanner):
     def _capture_baseline(self) -> None:
         """Capture baseline state-changing request."""
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         url = self.target.rstrip("/") + self.action_path
         
@@ -412,7 +412,7 @@ class CSRFScanner(BaseScanner):
     def _send_variant(self, remove_token: bool = False, random_token: bool = False, empty_token: bool = False, remove_origin: bool = False, null_origin: bool = False, different_origin: bool = False, method: Optional[str] = None, content_type: Optional[str] = None) -> Optional[Any]:
         """Send a variant request for testing."""
         self.rate_limiter.acquire()
-        self.request_count += 1
+        self._request_count += 1
         
         url = self.target.rstrip("/") + self.action_path
         headers = self.custom_headers.copy()
