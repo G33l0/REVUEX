@@ -21,7 +21,11 @@ Author: REVUEX Team
 License: MIT
 """
 
-from .graphql_scanner import GraphQLScanner, main
+try:
+    from .graphql_scanner import GraphQLScanner, main
+except ImportError:
+    # Fallback for module execution
+    from graphql_scanner import GraphQLScanner, main
 
 __all__ = ["GraphQLScanner", "main"]
 __version__ = "1.0.0"
