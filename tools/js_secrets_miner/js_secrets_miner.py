@@ -71,18 +71,83 @@ SCANNER_NAME = "JS Secrets Miner GOLD"
 SCANNER_VERSION = "4.0.0"
 
 BANNER = r"""
-██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
-██╔══██╗██╔════╝██║   ██║██║   ██║██╔════╝╚██╗██╔╝
-██████╔╝█████╗  ██║   ██║██║   ██║█████╗   ╚███╔╝ 
-██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══╝   ██╔██╗ 
-██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
-╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
+âââââââ âââââââââââ   ââââââ   ââââââââââââââ  âââ
+âââââââââââââââââââ   ââââââ   âââââââââââââââââââ
+ââââââââââââââ  âââ   ââââââ   âââââââââ   ââââââ 
+ââââââââââââââ  ââââ âââââââ   âââââââââ   ââââââ 
+âââ  âââââââââââ âââââââ âââââââââââââââââââââ âââ
+âââ  âââââââââââ  âââââ   âââââââ âââââââââââ  âââ
 
-JS-Secrets-Miner GOLD — Client-Side Trust Leak Intelligence
+JS-Secrets-Miner GOLD v2.0 â Client-Side Trust Leak Intelligence
+[Enhanced False Positive Filtering]
 """
 
 # Confidence threshold for high-value findings
 CONFIDENCE_THRESHOLD = 70
+
+# =============================================================================
+# FALSE POSITIVE EXCLUSION PATTERNS (NEW)
+# =============================================================================
+
+# Variable names that indicate UI/translation/config (NOT secrets)
+FALSE_POSITIVE_VAR_PATTERNS = [
+    r'(?i)^(label|title|description|placeholder|hint|message|text|caption)$',
+    r'(?i)^(header|footer|column|row|cell|table|field)_',
+    r'(?i)_(label|title|description|placeholder|hint|message|text|name|header)$',
+    r'(?i)^(TABLE_|HEADER_|COLUMN_|ROW_|FIELD_|FORM_|INPUT_|BUTTON_|LABEL_)',
+    r'(?i)^(SUGGESTION_|TRANSLATION_|I18N_|LOCALE_|MSG_|TXT_|STR_)',
+    r'(?i)(DISPLAY|VISIBLE|HIDDEN|ENABLED|DISABLED|READONLY)$',
+    r'(?i)^(className|classList|style|css|id|name|type|role|aria)',
+    r'(?i)^(onClick|onChange|onSubmit|onLoad|onError|handler|callback)',
+    r'(?i)^(width|height|size|margin|padding|border|color|background)',
+    r'(?i)^(route|path|url|link|href|src|redirect)$',
+    r'(?i)^(status|state|mode|phase|step|stage|version)$',
+]
+
+# Value patterns that are clearly NOT secrets
+FALSE_POSITIVE_VALUE_PATTERNS = [
+    r'(?i)^(true|false|null|undefined|none|n\/a)$',
+    r'(?i)^(yes|no|on|off|enabled|disabled)$',
+    r'(?i)^(loading|pending|success|error|failed|complete)$',
+    r'(?i)^(GET|POST|PUT|DELETE|PATCH|HEAD|OPTIONS)$',
+    r'(?i)^(application\/json|text\/html|text\/plain|multipart)',
+    r'^[0-9]+$',  # Pure numbers
+    r'^[0-9]+\.[0-9]+\.[0-9]+$',  # Version numbers
+    r'^#[a-fA-F0-9]{3,8}$',  # CSS colors
+    r'^(rgb|rgba|hsl|hsla)\(',  # CSS colors
+    r'^\d+px$|^\d+em$|^\d+rem$|^\d+%$',  # CSS units
+    r'^(https?:\/\/|\/\/|\/)[^\s]*\.(jpg|jpeg|png|gif|svg|ico|webp)',  # Image URLs
+    r'^(https?:\/\/|\/\/|\/)[^\s]*\.(css|js|woff|ttf|eot)',  # Asset URLs
+    r'(?i)^(select|insert|update|delete|from|where|and|or)[\s_]',  # SQL fragments
+    r'^[\w\s]{50,}$',  # Long text with spaces (likely human readable text)
+]
+
+# Context patterns that indicate false positives (surrounding code)
+FALSE_POSITIVE_CONTEXT_PATTERNS = [
+    r'label\s*:\s*["\']',
+    r'description\s*:\s*["\']',
+    r'placeholder\s*:\s*["\']',
+    r'title\s*:\s*["\']',
+    r'message\s*:\s*["\']',
+    r'text\s*:\s*["\']',
+    r'tooltip\s*:\s*["\']',
+    r'hint\s*:\s*["\']',
+    r'i18n\s*[\[\(]',
+    r't\s*\(\s*["\']',  # i18n translation function
+    r'translate\s*\(',
+    r'formatMessage\s*\(',
+    r'\.innerHTML\s*=',
+    r'\.textContent\s*=',
+    r'\.innerText\s*=',
+    r'console\.(log|warn|error|info)',
+    r'throw\s+new\s+Error',
+]
+
+# Minimum entropy for a real secret (increased from 3.5)
+MIN_SECRET_ENTROPY = 4.0
+
+# Minimum length for high-confidence secrets
+MIN_SECRET_LENGTH = 16
 
 # Secret keyword indicators
 SECRET_KEYWORDS = [
@@ -150,6 +215,61 @@ SINK_PATTERNS = [
     r"credentials\s*:",
 ]
 
+# =============================================================================
+# FALSE POSITIVE EXCLUSION PATTERNS (NEW)
+# =============================================================================
+
+# Variable names that are UI/translation keys, NOT secrets
+FALSE_POSITIVE_VAR_PATTERNS = [
+    r"^(LABEL|TITLE|HEADER|DESCRIPTION|PLACEHOLDER|HINT|MESSAGE|TEXT|BTN|BUTTON)_",
+    r"^(TABLE_HEADER|TABLE_FIELD|COLUMN|ROW|CELL)_",
+    r"^(SUGGESTION|RECOMMEND|SEARCH|FILTER|SORT)_",
+    r"^(ERROR|WARNING|INFO|SUCCESS|ALERT)_",
+    r"^(TOOLTIP|MODAL|DIALOG|POPUP|NOTIFICATION)_",
+    r"^(NAV|MENU|TAB|SIDEBAR|FOOTER|HEADER)_",
+    r"^(FORM|INPUT|SELECT|CHECKBOX|RADIO)_",
+    r"^(I18N|LANG|LOCALE|TRANSLATION|TRANS)_",
+    r"_(LABEL|TITLE|TEXT|MESSAGE|DESCRIPTION|PLACEHOLDER)$",
+    r"_(HEADER|COLUMN|FIELD|NAME|HINT)$",
+]
+
+# Values that look like translation keys or UI strings, NOT secrets
+FALSE_POSITIVE_VALUE_PATTERNS = [
+    r"^(TABLE_|LABEL_|HEADER_|TITLE_|BTN_|BUTTON_|NAV_|MENU_)",
+    r"^(SUGGESTION_|DESCRIPTION_|PLACEHOLDER_|TOOLTIP_|ERROR_|WARNING_)",
+    r"^(FORM_|INPUT_|SELECT_|MODAL_|DIALOG_|NOTIFICATION_)",
+    r"^[A-Z][A-Z0-9_]{5,}$",  # ALL_CAPS_CONSTANT (likely translation key)
+    r"^(Click|Submit|Cancel|Save|Delete|Edit|View|Add|Remove|Update)\s",  # UI button text
+    r"^(Please|Enter|Select|Choose|Provide|Confirm)\s",  # UI instruction text
+    r"^\d+(\.\d+)?$",  # Pure numbers
+    r"^(true|false|null|undefined)$",  # JS primitives
+    r"^(https?://|mailto:|tel:)",  # URLs (handled separately)
+    r"^#[0-9a-fA-F]{3,8}$",  # Color codes
+    r"^\d{1,2}px$|^\d{1,3}%$|^\d{1,2}rem$",  # CSS units
+]
+
+# Context indicators - if variable appears in these contexts, likely NOT a secret
+FALSE_POSITIVE_CONTEXT_PATTERNS = [
+    r"label\s*:\s*['\"]",
+    r"description\s*:\s*['\"]",
+    r"placeholder\s*:\s*['\"]",
+    r"title\s*:\s*['\"]",
+    r"message\s*:\s*['\"]",
+    r"tooltip\s*:\s*['\"]",
+    r"hint\s*:\s*['\"]",
+    r"text\s*:\s*['\"]",
+    r"translation\s*:\s*['\"]",
+    r"i18n\s*:\s*['\"]",
+    r"searchSuggestion\s*:\s*\{",
+    r"options\s*:\s*\{",
+]
+
+# Minimum entropy for real secrets (UI labels have low entropy)
+MIN_SECRET_ENTROPY = 3.0
+
+# Minimum length for real secrets
+MIN_SECRET_LENGTH = 16
+
 # Secret category classification
 class SecretCategory(Enum):
     SERVER_SECRET_LEAK = "server_secret_leak"
@@ -182,6 +302,145 @@ def calculate_entropy(s: str) -> float:
         return 0.0
     probs = [s.count(c) / len(s) for c in set(s)]
     return -sum(p * math.log2(p) for p in probs if p > 0)
+
+
+# =============================================================================
+# FALSE POSITIVE FILTER (NEW - v2.0)
+# =============================================================================
+
+class FalsePositiveFilter:
+    """
+    Advanced false positive detection to eliminate UI labels, 
+    translations, and configuration values from secret detection.
+    """
+    
+    def __init__(self):
+        # Compile regex patterns for performance
+        self.var_patterns = [re.compile(p) for p in FALSE_POSITIVE_VAR_PATTERNS]
+        self.value_patterns = [re.compile(p) for p in FALSE_POSITIVE_VALUE_PATTERNS]
+        self.context_patterns = [re.compile(p) for p in FALSE_POSITIVE_CONTEXT_PATTERNS]
+    
+    def is_false_positive(self, var: str, value: str, context: str = "") -> tuple:
+        """
+        Check if a variable/value pair is likely a false positive.
+        
+        Returns:
+            tuple: (is_false_positive: bool, reason: str)
+        """
+        # Check variable name patterns
+        for pattern in self.var_patterns:
+            if pattern.search(var):
+                return True, f"Variable name matches UI/translation pattern: {var}"
+        
+        # Check value patterns
+        for pattern in self.value_patterns:
+            if pattern.match(value):
+                return True, f"Value matches non-secret pattern"
+        
+        # Check context patterns
+        if context:
+            for pattern in self.context_patterns:
+                if pattern.search(context):
+                    return True, f"Context indicates UI/translation usage"
+        
+        # Check for human-readable text (spaces, common words)
+        if self._is_human_readable(value):
+            return True, "Value appears to be human-readable text"
+        
+        # Check entropy - low entropy values are likely not secrets
+        entropy = calculate_entropy(value)
+        if entropy < 2.5 and len(value) > 10:
+            return True, f"Low entropy ({entropy:.2f}) suggests non-random value"
+        
+        # Check for repeated patterns (not random)
+        if self._has_repeated_pattern(value):
+            return True, "Value contains repeated patterns"
+        
+        # Check for ALL_CAPS_SNAKE_CASE constants (likely enum/config names)
+        if re.match(r'^[A-Z][A-Z0-9_]{5,}$', value) and '_' in value:
+            return True, "Value appears to be a constant name, not a secret"
+        
+        return False, ""
+    
+    def _is_human_readable(self, value: str) -> bool:
+        """Check if value appears to be human-readable text."""
+        # Contains multiple spaces
+        if value.count(' ') >= 2:
+            return True
+        
+        # Contains common English words
+        common_words = ['the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 
+                       'can', 'has', 'her', 'was', 'one', 'our', 'out', 'with',
+                       'please', 'enter', 'select', 'click', 'submit', 'cancel',
+                       'error', 'success', 'failed', 'invalid', 'required']
+        value_lower = value.lower()
+        word_count = sum(1 for word in common_words if word in value_lower)
+        if word_count >= 2:
+            return True
+        
+        # Mostly lowercase letters with spaces (sentence-like)
+        if re.match(r'^[a-z][a-z\s]{10,}$', value.lower()):
+            lowercase_ratio = sum(1 for c in value if c.islower()) / len(value)
+            if lowercase_ratio > 0.8:
+                return True
+        
+        return False
+    
+    def _has_repeated_pattern(self, value: str) -> bool:
+        """Check for repeated character patterns."""
+        if len(value) < 8:
+            return False
+        
+        # Check for repeating sequences
+        for pattern_len in range(2, len(value) // 3 + 1):
+            pattern = value[:pattern_len]
+            if pattern * (len(value) // pattern_len) == value[:pattern_len * (len(value) // pattern_len)]:
+                if len(value) // pattern_len >= 3:
+                    return True
+        
+        # Check for too many repeated characters
+        char_counts = {}
+        for c in value:
+            char_counts[c] = char_counts.get(c, 0) + 1
+        
+        max_repeat = max(char_counts.values())
+        if max_repeat / len(value) > 0.5:
+            return True
+        
+        return False
+    
+    def get_confidence_penalty(self, var: str, value: str) -> int:
+        """
+        Calculate confidence penalty based on false positive indicators.
+        
+        Returns:
+            int: Negative score adjustment (0 to -50)
+        """
+        penalty = 0
+        
+        # Variable name contains UI-related terms
+        ui_terms = ['label', 'title', 'text', 'message', 'description', 'header', 
+                   'placeholder', 'hint', 'caption', 'display', 'column', 'row']
+        var_lower = var.lower()
+        for term in ui_terms:
+            if term in var_lower:
+                penalty -= 15
+                break
+        
+        # Value looks like a constant/enum name
+        if re.match(r'^[A-Z][A-Z0-9_]+$', value):
+            penalty -= 20
+        
+        # Value is too short for a real secret
+        if len(value) < MIN_SECRET_LENGTH:
+            penalty -= 10
+        
+        # Low entropy
+        entropy = calculate_entropy(value)
+        if entropy < MIN_SECRET_ENTROPY:
+            penalty -= int((MIN_SECRET_ENTROPY - entropy) * 10)
+        
+        return max(penalty, -50)
 
 
 # =============================================================================
@@ -356,36 +615,51 @@ class EsprimaStyleParser:
 
 
 # =============================================================================
-# SECRET HEURISTIC ENGINE
+# SECRET HEURISTIC ENGINE (Enhanced v2.0)
 # =============================================================================
 
 class SecretHeuristicEngine:
-    """Analyze potential secrets using heuristics."""
+    """Analyze potential secrets using heuristics with false positive filtering."""
     
-    def analyze(self, var: str, value: str) -> Dict:
+    def __init__(self):
+        self.fp_filter = FalsePositiveFilter()
+    
+    def analyze(self, var: str, value: str, context: str = "") -> Dict:
         """Analyze a variable and value for secret indicators."""
         signals = []
+        
+        # FIRST: Check for false positives
+        is_fp, fp_reason = self.fp_filter.is_false_positive(var, value, context)
+        if is_fp:
+            return {
+                "signals": [],
+                "provider": "",
+                "entropy": calculate_entropy(value),
+                "is_false_positive": True,
+                "fp_reason": fp_reason,
+                "confidence_penalty": -100,  # Exclude completely
+            }
         
         # Check for keyword match
         var_lower = var.lower()
         if any(k in var_lower for k in SECRET_KEYWORDS):
             signals.append("keyword")
         
-        # Check entropy
+        # Check entropy (increased threshold)
         ent = calculate_entropy(value)
-        if ent > 3.5:
+        if ent > MIN_SECRET_ENTROPY:
             signals.append("entropy")
         
         # Check length
-        if len(value) >= 16:
+        if len(value) >= MIN_SECRET_LENGTH:
             signals.append("length")
         
         # Check for hex-like patterns
         if re.match(r'^[a-fA-F0-9]{16,}$', value):
             signals.append("hex_pattern")
         
-        # Check for base64-like patterns
-        if re.match(r'^[A-Za-z0-9+/=]{20,}$', value):
+        # Check for base64-like patterns (but not ALL_CAPS constants)
+        if re.match(r'^[A-Za-z0-9+/=]{20,}$', value) and not re.match(r'^[A-Z0-9_]+$', value):
             signals.append("base64_pattern")
         
         # Check for third-party provider
@@ -396,10 +670,16 @@ class SecretHeuristicEngine:
                 signals.append("third_party")
                 break
         
+        # Calculate confidence penalty for borderline cases
+        confidence_penalty = self.fp_filter.get_confidence_penalty(var, value)
+        
         return {
             "signals": signals,
             "provider": provider,
             "entropy": ent,
+            "is_false_positive": False,
+            "fp_reason": "",
+            "confidence_penalty": confidence_penalty,
         }
 
 
@@ -485,33 +765,48 @@ class ImpactClassifier:
 
 
 # =============================================================================
-# CONFIDENCE SCORER
+# CONFIDENCE SCORER (Enhanced v2.0)
 # =============================================================================
 
 class ConfidenceScorer:
-    """Score secrets by confidence level."""
+    """Score secrets by confidence level with false positive penalty."""
     
     def score(self, meta: Dict) -> int:
-        """Calculate confidence score (0-100)."""
+        """Calculate confidence score (0-100) with false positive penalty."""
+        
+        # If marked as false positive, return 0
+        if meta.get("is_false_positive"):
+            return 0
+        
         score = 0
         
-        # Entropy signal
+        # Entropy signal (increased weight for high entropy)
         if "entropy" in meta.get("signals", []):
-            score += 25
+            entropy_val = meta.get("entropy", 0)
+            if entropy_val > 5.0:
+                score += 35  # Very high entropy = likely real secret
+            elif entropy_val > 4.5:
+                score += 30
+            else:
+                score += 25
         
         # Keyword signal
         if "keyword" in meta.get("signals", []):
             score += 25
         
-        # Third-party detection
+        # Third-party detection (strong indicator)
         if "third_party" in meta.get("signals", []):
-            score += 15
+            score += 25  # Increased from 15
         
         # Pattern detection (hex, base64)
         if "hex_pattern" in meta.get("signals", []) or "base64_pattern" in meta.get("signals", []):
             score += 10
         
-        # Second-order usage
+        # Length signal
+        if "length" in meta.get("signals", []):
+            score += 5
+        
+        # Second-order usage (used in API calls)
         if meta.get("second_order"):
             score += 20
         
@@ -522,7 +817,11 @@ class ConfidenceScorer:
         elif impact == ImpactLevel.MEDIUM:
             score += 10
         
-        return min(score, 100)
+        # Apply false positive confidence penalty
+        penalty = meta.get("confidence_penalty", 0)
+        score += penalty
+        
+        return max(0, min(score, 100))
 
 
 # =============================================================================
