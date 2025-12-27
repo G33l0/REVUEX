@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX SQLi Framework v4.0-GOLD
+REVUEX SQLi Framework v3.5-GOLD
 ===============================
 A 10/10 Private Research Grade Scanner for Bug Bounty Professionals.
 
@@ -59,7 +59,7 @@ from core.utils import (
 # =============================================================================
 
 SCANNER_NAME = "SQLi Scanner GOLD"
-SCANNER_VERSION = "4.0.0"
+SCANNER_VERSION = "3.5.0"
 
 # SQL error patterns by DBMS
 SQL_ERRORS = {
@@ -910,7 +910,8 @@ def main() -> int:
         print("SCAN COMPLETE")
         print(f"{'='*60}")
         print(f"Target: {args.target}")
-        print(f"Duration: {result.duration_seconds:.2f}s")
+        if result and hasattr(result, "duration_seconds") and result.duration_seconds:
+            print(f"Duration: {result.duration_seconds:.2f}s")
         print(f"Requests: {result.total_requests}")
         print(f"Findings: {len(result.findings)}")
         
@@ -941,8 +942,8 @@ def main() -> int:
             "scanner": "REVUEX SQLi GOLD",
             "version": SCANNER_VERSION,
             "target": args.target,
-            "scan_id": result.scan_id,
-            "duration": result.duration_seconds,
+            "scan_id": getattr(result, "scan_id", "unknown") if result else "unknown",
+            "duration": getattr(result, "duration_seconds", 0) if result else 0,
             "detected_dbms": scanner.detected_dbms,
             "second_order_markers": scanner.second_order_markers[:10],
             "findings": [
@@ -956,7 +957,7 @@ def main() -> int:
                     "evidence": f.evidence,
                     "remediation": f.remediation,
                 }
-                for f in result.findings
+                for f in getattr(result, "findings", [])
             ]
         }
         
