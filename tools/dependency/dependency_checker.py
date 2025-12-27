@@ -54,7 +54,7 @@ except ImportError:
 # =============================================================================
 
 SCANNER_NAME = "Dependency Scanner GOLD"
-SCANNER_VERSION = "1.0.0"
+SCANNER_VERSION = "4.0.0"
 
 BANNER = r"""
 ██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
@@ -320,7 +320,7 @@ class DependencyScanner(BaseScanner):
         """Fetch target page HTML."""
         try:
             self.rate_limiter.acquire()
-            self.request_count += 1
+            self._request_count += 1
             
             response = self.session.get(
                 self.target,
