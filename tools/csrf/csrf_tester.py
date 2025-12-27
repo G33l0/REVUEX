@@ -597,13 +597,14 @@ def main() -> int:
         print(f"{'='*60}")
         print(f"Target: {args.target}")
         print(f"Action: {args.action}")
-        print(f"Duration: {result.duration_seconds:.2f}s")
+        if result and hasattr(result, "duration_seconds") and result.duration_seconds:
+            print(f"Duration: {result.duration_seconds:.2f}s")
         print(f"CSRF Tokens Found: {len(scanner.csrf_tokens)}")
         print(f"Issues Found: {len(result.findings)}")
         print(f"Total Confidence: {scanner.total_confidence}")
     
     if args.output:
-        output_data = {"scanner": SCANNER_NAME, "version": SCANNER_VERSION, "target": args.target, "action": args.action, "csrf_tokens": list(scanner.csrf_tokens.keys()), "findings": [{"id": f.id, "title": f.title, "severity": f.severity.value} for f in result.findings]}
+        output_data = {"scanner": SCANNER_NAME, "version": SCANNER_VERSION, "target": args.target, "action": args.action, "csrf_tokens": list(scanner.csrf_tokens.keys()), "findings": [{"id": f.id, "title": f.title, "severity": f.severity.value} for f in getattr(result, "findings", [])]}
         with open(args.output, "w") as f:
             json.dump(output_data, f, indent=2)
         if not args.quiet:
