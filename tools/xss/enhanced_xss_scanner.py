@@ -1252,7 +1252,8 @@ def main() -> int:
         print("SCAN COMPLETE")
         print(f"{'='*60}")
         print(f"Target: {args.target}")
-        print(f"Duration: {result.duration_seconds:.2f}s")
+        if result and hasattr(result, "duration_seconds") and result.duration_seconds:
+            print(f"Duration: {result.duration_seconds:.2f}s")
         print(f"Requests: {result.total_requests}")
         print(f"Findings: {len(result.findings)}")
         
@@ -1284,8 +1285,8 @@ def main() -> int:
             "scanner": "REVUEX XSS GOLD",
             "version": SCANNER_VERSION,
             "target": args.target,
-            "scan_id": result.scan_id,
-            "duration": result.duration_seconds,
+            "scan_id": getattr(result, "scan_id", "unknown") if result else "unknown",
+            "duration": getattr(result, "duration_seconds", 0) if result else 0,
             "csp_info": scanner.csp_info,
             "findings": [
                 {
@@ -1298,7 +1299,7 @@ def main() -> int:
                     "evidence": f.evidence,
                     "remediation": f.remediation,
                 }
-                for f in result.findings
+                for f in getattr(result, "findings", [])
             ]
         }
         
