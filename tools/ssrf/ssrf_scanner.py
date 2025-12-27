@@ -815,7 +815,8 @@ def main() -> int:
         print("SCAN COMPLETE")
         print(f"{'='*60}")
         print(f"Target: {args.target}")
-        print(f"Duration: {result.duration_seconds:.2f}s")
+        if result and hasattr(result, "duration_seconds") and result.duration_seconds:
+            print(f"Duration: {result.duration_seconds:.2f}s")
         print(f"Endpoints Discovered: {len(scanner.discovered_endpoints)}")
         print(f"Issues Found: {len(result.findings)}")
         print(f"Total Confidence: {scanner.total_confidence}")
@@ -826,7 +827,7 @@ def main() -> int:
             "version": SCANNER_VERSION,
             "target": args.target,
             "endpoints_discovered": len(scanner.discovered_endpoints),
-            "findings": [{"id": f.id, "title": f.title, "severity": f.severity.value, "parameter": f.parameter} for f in result.findings]
+            "findings": [{"id": f.id, "title": f.title, "severity": f.severity.value, "parameter": f.parameter} for f in getattr(result, "findings", [])]
         }
         with open(args.output, "w") as f:
             json.dump(output_data, f, indent=2)
