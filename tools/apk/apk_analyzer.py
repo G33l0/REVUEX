@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX APK Analyzer GOLD v4.0
+REVUEX APK Analyzer GOLD v1.0
 =============================
 Research-Grade Android APK Security Analyzer (10/10 GOLD)
 
@@ -52,7 +52,7 @@ from core.utils import print_success, print_error, print_warning, print_info
 # =============================================================================
 
 SCANNER_NAME = "APK Analyzer GOLD"
-SCANNER_VERSION = "4.0.0"
+SCANNER_VERSION = "1.0.0"
 
 BANNER = r"""
 ██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
@@ -788,7 +788,7 @@ def main() -> int:
         print(f"APK: {args.apk}")
         if result and hasattr(result, "duration_seconds") and result.duration_seconds:
             print(f"Duration: {result.duration_seconds:.2f}s")
-        print(f"Issues Found: {len(result.findings)}")
+        print(f"Issues Found: {len(getattr(result, 'findings', []) or [])}")
         print(f"Total Confidence: {analyzer.total_confidence}")
         print(f"URLs Extracted: {len(analyzer.found_urls)}")
         print(f"Secrets Found: {len(analyzer.found_secrets)}")
@@ -807,7 +807,7 @@ def main() -> int:
         if not args.quiet:
             print(f"\nResults saved to: {args.output}")
     
-    return 1 if result.findings else 0
+    return 1 if getattr(result, 'findings', []) else 0
 
 
 if __name__ == "__main__":
