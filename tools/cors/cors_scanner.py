@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX CORS GOLD v4.0
+REVUEX CORS GOLD v1.0
 =====================
 High-confidence CORS Misconfiguration Scanner
 
@@ -51,7 +51,7 @@ from core.utils import print_success, print_error, print_warning, print_info
 # =============================================================================
 
 SCANNER_NAME = "CORS Scanner GOLD"
-SCANNER_VERSION = "4.0.0"
+SCANNER_VERSION = "1.0.0"
 
 BANNER = r"""
 ██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
@@ -572,7 +572,7 @@ def main() -> int:
         if result and hasattr(result, 'duration_seconds') and result.duration_seconds:
             print(f"Duration: {result.duration_seconds:.2f}s")
         if result and hasattr(result, 'findings'):
-            print(f"Issues Found: {len(result.findings)}")
+            print(f"Issues Found: {len(getattr(result, 'findings', []) or [])}")
         print(f"Total Confidence: {scanner.total_confidence}")
         
         if scanner.baseline_response:
