@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-REVUEX Subdomain-Hunter GOLD v4.0
+REVUEX Subdomain-Hunter GOLD v1.0
 =================================
 10/10 Research-Grade Subdomain Intelligence Engine for Bug Bounty Hunters.
 
@@ -66,17 +66,17 @@ from core.utils import (
 # =============================================================================
 
 SCANNER_NAME = "Subdomain Hunter GOLD"
-SCANNER_VERSION = "4.0.0"
+SCANNER_VERSION = "1.0.0"
 
 BANNER = r"""
-██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
-██╔══██╗██╔════╝██║   ██║██║   ██║██╔════╝╚██╗██╔╝
-██████╔╝█████╗  ██║   ██║██║   ██║█████╗   ╚███╔╝ 
-██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══╝   ██╔██╗ 
-██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
-╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
+âââââââ âââââââââââ   ââââââ   ââââââââââââââ  âââ
+âââââââââââââââââââ   ââââââ   âââââââââââââââââââ
+ââââââââââââââ  âââ   ââââââ   âââââââââ   ââââââ 
+ââââââââââââââ  ââââ âââââââ   âââââââââ   ââââââ 
+âââ  âââââââââââ âââââââ âââââââââââââââââââââ âââ
+âââ  âââââââââââ  âââââ   âââââââ âââââââââââ  âââ
 
-Subdomain-Hunter GOLD — Precision Recon Engine
+Subdomain-Hunter GOLD â Precision Recon Engine
 """
 
 # Confidence threshold for high-value findings
@@ -891,7 +891,7 @@ def main() -> int:
         if result and hasattr(result, "duration_seconds") and result.duration_seconds:
             print(f"Duration: {result.duration_seconds:.2f}s")
         print(f"Subdomains Found: {len(hunter.all_subdomains)}")
-        print(f"High-Confidence: {len(result.findings)}")
+        print(f"High-Confidence: {len(getattr(result, 'findings', []) or [])}")
         
         # Summary by ownership
         dangling = sum(1 for r in hunter.subdomain_results if r.ownership == OwnershipType.DANGLING)
@@ -929,7 +929,7 @@ def main() -> int:
                     "severity": f.severity.value,
                     "subdomain": f.payload,
                 }
-                for f in getattr(result, "findings", [])
+                for f in getattr(result, "findings", []) or []
             ]
         }
         
@@ -939,7 +939,8 @@ def main() -> int:
         if not args.quiet:
             print(f"\nResults saved to: {args.output}")
     
-    return 1 if result.findings else 0
+    findings = getattr(result, "findings", []) or []
+    return 1 if findings else 0
 
 
 if __name__ == "__main__":
