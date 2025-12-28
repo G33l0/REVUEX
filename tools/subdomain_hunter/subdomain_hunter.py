@@ -1,28 +1,14 @@
 #!/usr/bin/env python3
 """
-REVUEX Subdomain-Hunter GOLD v4.0
+REVUEX Subdomain-Hunter GOLD v4.1
 =================================
-10/10 Research-Grade Subdomain Intelligence Engine for Bug Bounty Hunters.
+Enhanced with subdomain list export for pipeline chaining.
 
-Design Philosophy:
-- High-confidence only (no noisy brute force)
-- Passive & semi-passive enumeration
-- Second-order discovery
-- Ownership & trust-boundary inference
-- Impact-aware classification
-- Report-ready evidence
-
-Techniques:
-- Certificate Transparency Log Mining
-- HTML/JS Endpoint Extraction
-- Multi-Source Correlation
-- DNS Resolution Verification
-- Ownership Classification (OWNED/THIRD_PARTY/DANGLING)
-- Subdomain Takeover Detection
-- Service Fingerprinting
-- Second-Order Subdomain Discovery
-- Trust Boundary Analysis (CORS/Cookies)
-- Confidence Scoring
+New in v4.1:
+- --export-subs: Export subdomain list to text file (one per line)
+- --export-format: Choose txt, json, or urls format
+- Auto-export to reports/ directory
+- Pipeline-friendly output
 
 Author: REVUEX Team
 License: MIT (Private Research Use)
@@ -66,17 +52,17 @@ from core.utils import (
 # =============================================================================
 
 SCANNER_NAME = "Subdomain Hunter GOLD"
-SCANNER_VERSION = "4.0.0"
+SCANNER_VERSION = "4.1.0"
 
 BANNER = r"""
-██████╗ ███████╗██╗   ██╗██╗   ██╗███████╗██╗  ██╗
-██╔══██╗██╔════╝██║   ██║██║   ██║██╔════╝╚██╗██╔╝
-██████╔╝█████╗  ██║   ██║██║   ██║█████╗   ╚███╔╝ 
-██╔══██╗██╔══╝  ╚██╗ ██╔╝██║   ██║██╔══╝   ██╔██╗ 
-██║  ██║███████╗ ╚████╔╝ ╚██████╔╝███████╗██╔╝ ██╗
-╚═╝  ╚═╝╚══════╝  ╚═══╝   ╚═════╝ ╚══════╝╚═╝  ╚═╝
+âââââââ âââââââââââ   ââââââ   ââââââââââââââ  âââ
+âââââââââââââââââââ   ââââââ   âââââââââââââââââââ
+ââââââââââââââ  âââ   ââââââ   âââââââââ   ââââââ 
+ââââââââââââââ  ââââ âââââââ   âââââââââ   ââââââ 
+âââ  âââââââââââ âââââââ âââââââââââââââââââââ âââ
+âââ  âââââââââââ  âââââ   âââââââ âââââââââââ  âââ
 
-Subdomain-Hunter GOLD - A Precision Recon Engine
+Subdomain-Hunter GOLD v4.1 - Pipeline-Ready Recon
 """
 
 # Confidence threshold for high-value findings
@@ -523,6 +509,117 @@ class ConfidenceScorer:
 
 
 # =============================================================================
+# SUBDOMAIN EXPORTER (NEW IN v4.1)
+# =============================================================================
+
+class SubdomainExporter:
+    """Export subdomains in various formats for pipeline chaining."""
+    
+    def __init__(self, domain: str, subdomains: Dict[str, Set[str]], results: List[SubdomainResult]):
+        self.domain = domain
+        self.subdomains = subdomains
+        self.results = results
+        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    def export_txt(self, filepath: str, resolving_only: bool = False) -> str:
+        """Export subdomains as plain text (one per line)."""
+        subs = self._get_subdomain_list(resolving_only)
+        
+        with open(filepath, 'w') as f:
+            for sub in sorted(subs):
+                f.write(f"{sub}\n")
+        
+        return filepath
+    
+    def export_urls(self, filepath: str, resolving_only: bool = True) -> str:
+        """Export as full URLs (https://)."""
+        subs = self._get_subdomain_list(resolving_only)
+        
+        with open(filepath, 'w') as f:
+            for sub in sorted(subs):
+                f.write(f"https://{sub}\n")
+        
+        return filepath
+    
+    def export_json_simple(self, filepath: str) -> str:
+        """Export as simple JSON array."""
+        subs = list(self.subdomains.keys())
+        
+        with open(filepath, 'w') as f:
+            json.dump(sorted(subs), f, indent=2)
+        
+        return filepath
+    
+    def export_detailed_json(self, filepath: str) -> str:
+        """Export detailed JSON with metadata."""
+        data = {
+            "scanner": "REVUEX Subdomain Hunter GOLD",
+            "version": SCANNER_VERSION,
+            "domain": self.domain,
+            "timestamp": self.timestamp,
+            "total_found": len(self.subdomains),
+            "subdomains": {
+                "all": sorted(self.subdomains.keys()),
+                "resolving": [r.subdomain for r in self.results if r.resolves],
+                "high_risk": [r.subdomain for r in self.results if r.risk == "high"],
+                "dangling": [r.subdomain for r in self.results if r.ownership == OwnershipType.DANGLING],
+            },
+            "results": [
+                {
+                    "subdomain": r.subdomain,
+                    "sources": list(r.sources),
+                    "ownership": r.ownership.value,
+                    "resolves": r.resolves,
+                    "risk": r.risk,
+                    "confidence": r.confidence,
+                }
+                for r in self.results
+            ]
+        }
+        
+        with open(filepath, 'w') as f:
+            json.dump(data, f, indent=2)
+        
+        return filepath
+    
+    def _get_subdomain_list(self, resolving_only: bool) -> List[str]:
+        """Get subdomain list with optional filtering."""
+        if resolving_only:
+            return [r.subdomain for r in self.results if r.resolves]
+        return list(self.subdomains.keys())
+    
+    def auto_export(self, output_dir: str = "reports") -> Dict[str, str]:
+        """Auto-export in all formats to reports directory."""
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+        
+        base_name = f"subdomains_{self.domain.replace('.', '_')}_{self.timestamp}"
+        
+        exports = {}
+        
+        # Plain text list (all)
+        txt_path = f"{output_dir}/{base_name}.txt"
+        self.export_txt(txt_path, resolving_only=False)
+        exports["txt_all"] = txt_path
+        
+        # Plain text list (resolving only)
+        txt_live_path = f"{output_dir}/{base_name}_live.txt"
+        self.export_txt(txt_live_path, resolving_only=True)
+        exports["txt_live"] = txt_live_path
+        
+        # URLs (resolving only)
+        urls_path = f"{output_dir}/{base_name}_urls.txt"
+        self.export_urls(urls_path, resolving_only=True)
+        exports["urls"] = urls_path
+        
+        # Detailed JSON
+        json_path = f"{output_dir}/{base_name}.json"
+        self.export_detailed_json(json_path)
+        exports["json"] = json_path
+        
+        return exports
+
+
+# =============================================================================
 # SUBDOMAIN HUNTER GOLD CLASS
 # =============================================================================
 
@@ -588,6 +685,9 @@ class SubdomainHunter(BaseScanner):
         # Results
         self.subdomain_results: List[SubdomainResult] = []
         self.all_subdomains: Dict[str, Set[str]] = {}
+        
+        # Exporter (initialized after scan)
+        self.exporter: Optional[SubdomainExporter] = None
         
         # Scanner info
         self.scanner_name = SCANNER_NAME
@@ -694,6 +794,9 @@ class SubdomainHunter(BaseScanner):
         if self.enable_second_order:
             self.logger.info("Phase 5: Second-order discovery...")
             self._run_second_order_discovery()
+        
+        # Initialize exporter
+        self.exporter = SubdomainExporter(self.domain, self.all_subdomains, self.subdomain_results)
         
         self.logger.info(f"Subdomain Hunter complete. Found {len(self.findings)} high-confidence subdomains")
     
@@ -824,6 +927,45 @@ class SubdomainHunter(BaseScanner):
         if result.provider:
             print(f"  Provider: {result.provider}")
         print()
+    
+    # ==========================================================================
+    # EXPORT METHODS (NEW IN v4.1)
+    # ==========================================================================
+    
+    def export_subdomains(self, filepath: str, format: str = "txt", resolving_only: bool = False) -> str:
+        """
+        Export discovered subdomains to file.
+        
+        Args:
+            filepath: Output file path
+            format: Export format (txt, urls, json)
+            resolving_only: Only export resolving subdomains
+        
+        Returns:
+            Path to exported file
+        """
+        if not self.exporter:
+            self.exporter = SubdomainExporter(self.domain, self.all_subdomains, self.subdomain_results)
+        
+        if format == "txt":
+            return self.exporter.export_txt(filepath, resolving_only)
+        elif format == "urls":
+            return self.exporter.export_urls(filepath, resolving_only)
+        elif format == "json":
+            return self.exporter.export_detailed_json(filepath)
+        else:
+            return self.exporter.export_txt(filepath, resolving_only)
+    
+    def get_subdomain_list(self, resolving_only: bool = False) -> List[str]:
+        """Get list of discovered subdomains."""
+        if resolving_only:
+            return [r.subdomain for r in self.subdomain_results if r.resolves]
+        return list(self.all_subdomains.keys())
+    
+    def print_subdomain_list(self) -> None:
+        """Print subdomain list to stdout (for piping)."""
+        for sub in sorted(self.all_subdomains.keys()):
+            print(sub)
 
 
 # =============================================================================
@@ -834,26 +976,58 @@ def create_parser() -> argparse.ArgumentParser:
     """Create CLI argument parser."""
     parser = argparse.ArgumentParser(
         prog="revuex-subdomain",
-        description="REVUEX Subdomain-Hunter GOLD - Precision Recon Engine",
+        description="REVUEX Subdomain-Hunter GOLD v4.1 - Pipeline-Ready Recon",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
+    # Basic scan
     %(prog)s -d example.com
-    %(prog)s -d example.com --threshold 50 -v
-    %(prog)s -d example.com --no-second-order -o results.json
+    
+    # Export subdomains to text file
+    %(prog)s -d example.com --export-subs subs.txt
+    
+    # Export only live (resolving) subdomains
+    %(prog)s -d example.com --export-subs live.txt --live-only
+    
+    # Export as URLs for other tools
+    %(prog)s -d example.com --export-subs targets.txt --export-format urls
+    
+    # Pipeline: subdomain â fingerprint
+    %(prog)s -d example.com --export-subs subs.txt && revuex tech_fingerprint --list subs.txt
+    
+    # Print to stdout for piping
+    %(prog)s -d example.com --print-subs | revuex tech_fingerprint --stdin
 
 Author: REVUEX Team
         """
     )
     
+    # Target
     parser.add_argument("-d", "--domain", required=True, help="Target root domain")
+    
+    # Scan options
     parser.add_argument("--threshold", type=int, default=CONFIDENCE_THRESHOLD,
                         help=f"Confidence threshold (default: {CONFIDENCE_THRESHOLD})")
     parser.add_argument("--min-sources", type=int, default=1,
                         help="Minimum sources for correlation (default: 1)")
     parser.add_argument("--no-second-order", action="store_true",
                         help="Disable second-order discovery")
-    parser.add_argument("-o", "--output", help="Output file (JSON)")
+    
+    # Export options (NEW)
+    export_group = parser.add_argument_group("Export Options")
+    export_group.add_argument("--export-subs", metavar="FILE",
+                              help="Export subdomain list to file")
+    export_group.add_argument("--export-format", choices=["txt", "urls", "json"],
+                              default="txt", help="Export format (default: txt)")
+    export_group.add_argument("--live-only", action="store_true",
+                              help="Only export resolving subdomains")
+    export_group.add_argument("--print-subs", action="store_true",
+                              help="Print subdomains to stdout (for piping)")
+    export_group.add_argument("--auto-export", action="store_true",
+                              help="Auto-export all formats to reports/")
+    
+    # Output options
+    parser.add_argument("-o", "--output", help="Output file (detailed JSON report)")
     parser.add_argument("--delay", type=float, default=0.3, help="Request delay")
     parser.add_argument("--timeout", type=int, default=8, help="Request timeout")
     parser.add_argument("-v", "--verbose", action="store_true", help="Verbose output")
@@ -883,6 +1057,29 @@ def main() -> int:
     
     result = hunter.run()
     
+    # Handle subdomain export (NEW)
+    if args.export_subs:
+        export_path = hunter.export_subdomains(
+            args.export_subs,
+            format=args.export_format,
+            resolving_only=args.live_only
+        )
+        if not args.quiet:
+            print(f"\n[+] Subdomains exported to: {export_path}")
+    
+    # Auto-export all formats
+    if args.auto_export:
+        exports = hunter.exporter.auto_export()
+        if not args.quiet:
+            print(f"\n[+] Auto-exported files:")
+            for name, path in exports.items():
+                print(f"    {name}: {path}")
+    
+    # Print to stdout for piping
+    if args.print_subs:
+        hunter.print_subdomain_list()
+        return 0  # Exit after printing for clean piping
+    
     if not args.quiet:
         print(f"\n{'='*60}")
         print("SCAN COMPLETE")
@@ -901,6 +1098,10 @@ def main() -> int:
         print(f"  Dangling (takeover risk): {dangling}")
         print(f"  Third-Party: {third_party}")
         print(f"  Owned: {len(hunter.subdomain_results) - dangling - third_party}")
+        
+        # Show export hint if not exported
+        if not args.export_subs and not args.auto_export:
+            print(f"\n[TIP] Export subdomains with: --export-subs subs.txt")
     
     if args.output:
         output_data = {
